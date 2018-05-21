@@ -1,4 +1,5 @@
 #include <FastLED.h>
+
 #define LED_PIN     5
 #define NUM_LEDS    51
 #define BRIGHTNESS  150
@@ -34,6 +35,12 @@ extern CRGBPalette16 myRedWhiteBluePalette;
 extern const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;
 
 void setup() {
+    // ESP2886 related:
+    pinMode(10, OUTPUT);
+    pinMode(11, OUTPUT);
+    pinMode(12, OUTPUT);
+    pinMode(13, OUTPUT);
+    
     delay( 3000 ); // power-up safety delay
     FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
     FastLED.setBrightness(  BRIGHTNESS );
@@ -48,6 +55,12 @@ void setup() {
 
 void loop()
 {
+    // ESP2886 related:
+    digitalWrite(10, HIGH);
+    digitalWrite(11, HIGH);
+    digitalWrite(12, LOW);
+    digitalWrite(13, LOW);
+  
     // ChangePalettePeriodically();
     
     static uint8_t startIndex = 0;
@@ -198,3 +211,4 @@ const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM =
 // palette to Green (0,255,0) and Blue (0,0,255), and then retrieved 
 // the first sixteen entries from the virtual palette (of 256), you'd get
 // Green, followed by a smooth gradient from green-to-blue, and then Blue.
+
