@@ -2,12 +2,12 @@
 
 #define LED_PIN     5
 #define NUM_LEDS    51
-#define BRIGHTNESS  64
+#define BRIGHTNESS  150
 #define LED_TYPE    WS2811
-#define COLOR_ORDER GRB
+#define COLOR_ORDER BRG
 CRGB leds[NUM_LEDS];
 
-#define UPDATES_PER_SECOND 100
+#define UPDATES_PER_SECOND 80
 
 // This example shows several ways to set up and use 'palettes' of colors
 // with FastLED.
@@ -34,29 +34,35 @@ TBlendType    currentBlending;
 extern CRGBPalette16 myRedWhiteBluePalette;
 extern const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;
 
-
 void setup() {
     delay( 3000 ); // power-up safety delay
     FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
     FastLED.setBrightness(  BRIGHTNESS );
     
+    // OceanColors_p, CloudColors_p, LavaColors_p, ForestColors_p, and PartyColors_p., RainbowColors_p
     currentPalette = RainbowColors_p;
+    // TODO: Add serial communication
+    
     currentBlending = LINEARBLEND;
 }
 
 
 void loop()
 {
-    ChangePalettePeriodically();
+    // ChangePalettePeriodically();
     
     static uint8_t startIndex = 0;
     startIndex = startIndex + 1; /* motion speed */
     
-    FillLEDsFromPaletteColors( startIndex);
+    FillLEDsFromPaletteColors(startIndex); //startIndex
+    //color = Blue
+    //SetColorPalette();
     
     FastLED.show();
     FastLED.delay(1000 / UPDATES_PER_SECOND);
 }
+
+
 
 void FillLEDsFromPaletteColors( uint8_t colorIndex)
 {
@@ -104,6 +110,13 @@ void SetupTotallyRandomPalette()
     for( int i = 0; i < 16; i++) {
         currentPalette[i] = CHSV( random8(), 255, random8());
     }
+}
+
+void SetColorPalette()
+{
+ 
+    // 'black out' all 16 palette entries...
+    fill_solid( currentPalette, 16, CRGB::Green);
 }
 
 // This function sets up a palette of black and white stripes,
