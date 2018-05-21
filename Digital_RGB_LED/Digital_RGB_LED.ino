@@ -1,5 +1,5 @@
 #include <FastLED.h>
-
+// Test Github connection
 #define LED_PIN     5
 #define NUM_LEDS    51
 #define BRIGHTNESS  64
