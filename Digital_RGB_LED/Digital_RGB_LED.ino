@@ -8,7 +8,6 @@
 CRGB leds[NUM_LEDS];
 
 #define UPDATES_PER_SECOND 80
-
 // This example shows several ways to set up and use 'palettes' of colors
 // with FastLED.
 //
@@ -74,7 +73,8 @@ void setup() {
     // MediumVioletRed:C71585,MidnightBlue:191970,MintCream:F5FFFA,Navy:000080,Olive:808000
     // OliveDrab:6B8E23,Orange:FFA500,OrangeRed:FF4500,Orchid:DA70D6,PaleGreen:98FB98,Peru:CD853F
     // Yellow:FFFF00,White:FFFFFF,Cyan:00FFFF
-     fill_solid( currentPalette, 16, 0x00ffff);
+    fill_solid( currentPalette, 16, 0x000033);
+    currentPalette[0] = 0x000000;
     
 }
 
