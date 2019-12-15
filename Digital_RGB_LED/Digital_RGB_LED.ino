@@ -6,9 +6,10 @@
 #define BRIGHTNESS  150
 #define LED_TYPE    WS2811
 #define COLOR_ORDER BRG
-CRGB leds[NUM_LEDS];
+CRGB leds1[NUM_LEDS];
+CRGB leds2[NUM_LEDS];
 
-#define UPDATES_PER_SECOND 20
+#define UPDATES_PER_SECOND 25
 
 // This example shows several ways to set up and use 'palettes' of colors
 // with FastLED.
@@ -42,12 +43,12 @@ void setup() {
     
     delay( 500 ); // power-up safety delay
     currentBlending = LINEARBLEND;
-    FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
-    FastLED.addLeds<LED_TYPE, LED_PIN2, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
+    FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds1, NUM_LEDS).setCorrection( TypicalLEDStrip );
+    FastLED.addLeds<LED_TYPE, LED_PIN2, COLOR_ORDER>(leds2, NUM_LEDS).setCorrection( TypicalLEDStrip );
     FastLED.setBrightness(  BRIGHTNESS );
     
     // OceanColors_p, CloudColors_p, LavaColors_p, ForestColors_p, and PartyColors_p., RainbowColors_p
-    currentPalette = RainbowColors_p;
+    currentPalette = RainbowStripeColors_p;
     /*fill_solid( currentPalette, 16, 0x00ff00);
     leds[10] = CRGB::Red;
     leds[20] = CRGB::Red;
@@ -66,7 +67,8 @@ void loop()
     
     startIndex = startIndex - 1; /* motion speed */
     
-    FillLEDsFromPaletteColors(startIndex); //startIndex
+    FillLEDsFromPaletteColors(leds1, currentPalette, currentBlending, startIndex, false); //startIndex
+    FillLEDsFromPaletteColors(leds2, currentPalette, currentBlending, startIndex, true); //startIndex
     //color = Blue
     //SetColorPalette();
     
@@ -76,13 +78,21 @@ void loop()
 
 
 
-void FillLEDsFromPaletteColors( uint8_t colorIndex)
+void FillLEDsFromPaletteColors( CRGB leds[], CRGBPalette256 palette, TBlendType blending, uint8_t colorIndex, bool reverse)
 {
     uint8_t brightness = 255;
+    if (reverse) {
+      for( int i = NUM_LEDS; i >= 0; i--) {
+          leds[i] = ColorFromPalette( palette, colorIndex - NUM_LEDS/5, brightness, blending);
+          colorIndex += 2;
+      }
+      
+    } else {
     
-    for( int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = ColorFromPalette( currentPalette, colorIndex, brightness, currentBlending);
-        colorIndex += 1;
+      for( int i = 0; i < NUM_LEDS; i++) {
+          leds[i] = ColorFromPalette( palette, colorIndex, brightness, blending);
+          colorIndex += 3;
+      }
     }
 }
 
