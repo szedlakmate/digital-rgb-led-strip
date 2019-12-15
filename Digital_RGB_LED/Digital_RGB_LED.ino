@@ -29,29 +29,32 @@ CRGB leds[NUM_LEDS];
 
 
 
-CRGBPalette16 currentPalette;
+CRGBPalette256 currentPalette;
 TBlendType    currentBlending;
 
-extern CRGBPalette16 myRedWhiteBluePalette;
+extern CRGBPalette256 myRedWhiteBluePalette;
+
+static uint8_t startIndex = 65;
+
 extern const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;
 
 void setup() {
-    // ESP2886 related:
-    pinMode(10, OUTPUT);
-    pinMode(11, OUTPUT);
-    pinMode(12, OUTPUT);
-    pinMode(13, OUTPUT);
     
-    delay( 1000 ); // power-up safety delay
+    delay( 500 ); // power-up safety delay
+    currentBlending = LINEARBLEND;
     FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
     FastLED.addLeds<LED_TYPE, LED_PIN2, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
     FastLED.setBrightness(  BRIGHTNESS );
     
     // OceanColors_p, CloudColors_p, LavaColors_p, ForestColors_p, and PartyColors_p., RainbowColors_p
-    currentPalette = PartyColors_p;
-    // TODO: Add serial communication
+    currentPalette = RainbowColors_p;
+    /*fill_solid( currentPalette, 16, 0x00ff00);
+    leds[10] = CRGB::Red;
+    leds[20] = CRGB::Red;
+    leds[30] = CRGB::Red;
+    */
     
-    currentBlending = LINEARBLEND;
+    
 }
 
 
@@ -60,10 +63,10 @@ void loop()
 
     // ChangePalettePeriodically();
     
-    static uint8_t startIndex = 0;
-    startIndex = startIndex + 1; /* motion speed */
     
-    FillLEDsFromPaletteColors(NUM_LEDS - startIndex); //startIndex
+    startIndex = startIndex - 1; /* motion speed */
+    
+    FillLEDsFromPaletteColors(startIndex); //startIndex
     //color = Blue
     //SetColorPalette();
     
