@@ -20,7 +20,7 @@ CRGB leds2[NUM_LEDS];
 // USING palettes is MUCH simpler in practice than in theory, so first just
 // run this sketch, and watch the pretty lights as you then read through
 // the code.  Although this sketch has eight (or more) different color schemes,
-// the entire sketch compiles down to about 6.5K on AVR.
+// the entire sketch compiles down to abstepout 6.5K on AVR.
 //
 // FastLED provides a few pre-configured color palettes, and makes it
 // extremely easy to make up your own color schemes with palettes.
@@ -65,15 +65,15 @@ void loop()
     // ChangePalettePeriodically();
     
     
-    startIndex = startIndex - 1; /* motion speed */
+    startIndex = startIndex - 1; /* motion step */
     
     FillLEDsFromPaletteColors(leds1, currentPalette, currentBlending, startIndex, false); //startIndex
-    FillLEDsFromPaletteColors(leds2, currentPalette, currentBlending, startIndex, true); //startIndex
+    FillLEDsFromPaletteColors(leds2, currentPalette, currentBlending, startIndex, false); //startIndex
     //color = Blue
     //SetColorPalette();
     
     FastLED.show();
-    FastLED.delay(1000 / UPDATES_PER_SECOND);
+    FastLED.delay(1000 / UPDATES_PER_SECOND); /* motion speed */
 }
 
 
