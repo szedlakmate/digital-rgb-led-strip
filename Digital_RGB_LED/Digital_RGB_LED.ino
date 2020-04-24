@@ -9,7 +9,7 @@
 CRGB leds1[NUM_LEDS];
 CRGB leds2[NUM_LEDS];
 
-#define UPDATES_PER_SECOND 25
+#define UPDATES_PER_SECOND 15
 
 // This example shows several ways to set up and use 'palettes' of colors
 // with FastLED.
@@ -36,6 +36,8 @@ TBlendType    currentBlending;
 extern CRGBPalette256 myRedWhiteBluePalette;
 
 static uint8_t startIndex = 65;
+static uint8_t loopDirection = -1;
+static uint16_t customDelay = 0;
 
 extern const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;
 
@@ -48,7 +50,10 @@ void setup() {
     FastLED.setBrightness(  BRIGHTNESS );
     
     // OceanColors_p, CloudColors_p, LavaColors_p, ForestColors_p, and PartyColors_p., RainbowColors_p
-    currentPalette = RainbowStripeColors_p;
+    // currentPalette = RainbowStripeColors_p;
+    SetupBlackAndWhiteStripedPalette();       
+    //currentBlending = NOBLEND;
+    currentBlending = LINEARBLEND; 
     /*fill_solid( currentPalette, 16, 0x00ff00);
     leds[10] = CRGB::Red;
     leds[20] = CRGB::Red;
@@ -58,14 +63,18 @@ void setup() {
     
 }
 
-
 void loop()
 {
-
     // ChangePalettePeriodically();
-    
-    
-    startIndex = startIndex - 1; /* motion step */
+    startIndex = startIndex + loopDirection; /* motion step */
+
+    if (startIndex == 31) {
+      startIndex = startIndex + NUM_LEDS / 2;
+      loopDirection = loopDirection*(-1);
+    } else if (startIndex == 1) {
+      fill_solid( currentPalette, NUM_LEDS * 3, CRGB::White);
+      customDelay = 250;
+    }
     
     FillLEDsFromPaletteColors(leds1, currentPalette, currentBlending, startIndex, false); //startIndex
     FillLEDsFromPaletteColors(leds2, currentPalette, currentBlending, startIndex, false); //startIndex
@@ -74,6 +83,14 @@ void loop()
     
     FastLED.show();
     FastLED.delay(1000 / UPDATES_PER_SECOND); /* motion speed */
+    FastLED.delay(customDelay);
+    
+    // Reset customDelay and animation after customDelay being applied
+    if (customDelay != 0) {
+      fill_solid( currentPalette, NUM_LEDS * 3, CRGB::Black);
+      SetupBlackAndWhiteStripedPalette(); 
+      customDelay = 0;
+    }
 }
 
 
@@ -134,11 +151,11 @@ void SetupTotallyRandomPalette()
     }
 }
 
-void SetColorPalette()
+void SetColorPalette(CRGB color)
 {
  
     // 'black out' all 16 palette entries...
-    fill_solid( currentPalette, 16, CRGB::Green);
+    fill_solid( currentPalette, NUM_LEDS, color);
 }
 
 // This function sets up a palette of black and white stripes,
@@ -148,12 +165,16 @@ void SetColorPalette()
 void SetupBlackAndWhiteStripedPalette()
 {
     // 'black out' all 16 palette entries...
-    fill_solid( currentPalette, 16, CRGB::Black);
+    fill_solid( currentPalette, NUM_LEDS, CRGB::Black);
     // and set every fourth one to white.
     currentPalette[0] = CRGB::White;
-    currentPalette[4] = CRGB::White;
-    currentPalette[8] = CRGB::White;
-    currentPalette[12] = CRGB::White;
+    currentPalette[1] = CRGB::White;
+    currentPalette[2] = CRGB::White;
+    currentPalette[3] = CRGB::White;
+    currentPalette[120] = CRGB::White;
+    currentPalette[121] = CRGB::White;
+    currentPalette[122] = CRGB::White;
+    currentPalette[123] = CRGB::White;
     
 }
 
