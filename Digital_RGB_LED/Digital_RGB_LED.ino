@@ -35,8 +35,8 @@ TBlendType    currentBlending;
 
 extern CRGBPalette256 myRedWhiteBluePalette;
 
-static uint8_t startIndex = 65;
-static uint8_t loopDirection = -1;
+static uint8_t startIndex = -1; // Make sure 0 indexed animation comes at initialization
+static uint8_t loopDirection = +1;
 static uint16_t customDelay = 0;
 
 extern const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;
@@ -68,12 +68,12 @@ void loop()
     // ChangePalettePeriodically();
     startIndex = startIndex + loopDirection; /* motion step */
 
-    if (startIndex == 31) {
-      startIndex = startIndex + NUM_LEDS / 2;
+    if (startIndex == 0) {
+      startIndex = startIndex + NUM_LEDS * 3 / 2;
       loopDirection = loopDirection*(-1);
-    } else if (startIndex == 1) {
+    
       fill_solid( currentPalette, NUM_LEDS * 3, CRGB::White);
-      customDelay = 250;
+      customDelay = 200;
     }
     
     FillLEDsFromPaletteColors(leds1, currentPalette, currentBlending, startIndex, false); //startIndex
