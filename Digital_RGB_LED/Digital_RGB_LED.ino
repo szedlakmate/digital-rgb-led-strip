@@ -2,7 +2,7 @@
 
 #define LED_PIN     30
 #define LED_PIN2    31
-#define NUM_LEDS    80
+#define NUM_LEDS    85
 #define BRIGHTNESS  150
 #define LED_TYPE    WS2811
 #define COLOR_ORDER BRG
@@ -73,7 +73,7 @@ void loop()
       loopDirection = loopDirection*(-1);
     
       fill_solid( currentPalette, NUM_LEDS * 3, CRGB::White);
-      customDelay = 200;
+      customDelay = 100;
     }
     
     FillLEDsFromPaletteColors(leds1, currentPalette, currentBlending, startIndex, false); //startIndex
