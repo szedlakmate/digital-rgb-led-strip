@@ -69,7 +69,7 @@ void loop()
     startIndex = startIndex + loopDirection*1; /* motion step */
 
     if (startIndex == 0) {
-      startIndex = startIndex + NUM_LEDS * 3 / 2;
+      // startIndex = startIndex + NUM_LEDS * 3 / 2;
       loopDirection = loopDirection*(-1);
     
       fill_solid( currentPalette, NUM_LEDS * 3, CRGB::White);
