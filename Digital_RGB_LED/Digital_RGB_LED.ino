@@ -96,9 +96,9 @@ void loop()
 }
 
 void launchDot(int index, CRGB color) {
-  currentPalette[(-loopDirection)*waveLength*index -1] = color;
-  currentPalette[(-loopDirection)*waveLength*index] = color;
-  currentPalette[(-loopDirection)*waveLength*index +1] = color;
+  currentPalette[(loopDirection)*waveLength*index -1] = color;
+  currentPalette[(loopDirection)*waveLength*index] = color;
+  currentPalette[(loopDirection)*waveLength*index +1] = color;
 }
 
 void FillLEDsFromPaletteColors( CRGB leds[], CRGBPalette256 palette, TBlendType blending, uint8_t colorIndex, bool reverse)
