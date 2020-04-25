@@ -36,9 +36,9 @@ TBlendType    currentBlending;
 extern CRGBPalette256 myRedWhiteBluePalette;
 
 static uint8_t startIndex = -1; // Make sure 0 indexed animation comes at initialization
-static uint8_t loopDirection = +1;
+static uint8_t loopDirection = -1;
 static uint16_t customDelay = 0;
-
+static int waveLength = 5*3;
 extern const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;
 
 void setup() {
@@ -51,7 +51,8 @@ void setup() {
     
     // OceanColors_p, CloudColors_p, LavaColors_p, ForestColors_p, and PartyColors_p., RainbowColors_p
     // currentPalette = RainbowStripeColors_p;
-    SetupBlackAndWhiteStripedPalette();       
+    // SetupBlackAndWhiteStripedPalette();   
+    fill_solid( currentPalette, NUM_LEDS * 3, CRGB::Black);    
     //currentBlending = NOBLEND;
     currentBlending = LINEARBLEND; 
     /*fill_solid( currentPalette, 16, 0x00ff00);
@@ -65,21 +66,22 @@ void setup() {
 
 void loop()
 {
-    // ChangePalettePeriodically();
-    startIndex = startIndex + loopDirection; /* motion step */
+    startIndex = startIndex + loopDirection*1; /* motion step */
 
     if (startIndex == 0) {
       startIndex = startIndex + NUM_LEDS * 3 / 2;
       loopDirection = loopDirection*(-1);
     
       fill_solid( currentPalette, NUM_LEDS * 3, CRGB::White);
-      customDelay = 100;
+      customDelay = 400;
+    }
+
+    if (startIndex % waveLength == 0) {
+      launchDot(startIndex / waveLength, CRGB::White);
     }
     
     FillLEDsFromPaletteColors(leds1, currentPalette, currentBlending, startIndex, false); //startIndex
     FillLEDsFromPaletteColors(leds2, currentPalette, currentBlending, startIndex, false); //startIndex
-    //color = Blue
-    //SetColorPalette();
     
     FastLED.show();
     FastLED.delay(1000 / UPDATES_PER_SECOND); /* motion speed */
@@ -88,18 +90,22 @@ void loop()
     // Reset customDelay and animation after customDelay being applied
     if (customDelay != 0) {
       fill_solid( currentPalette, NUM_LEDS * 3, CRGB::Black);
-      SetupBlackAndWhiteStripedPalette(); 
+      // SetupBlackAndWhiteStripedPalette(); 
       customDelay = 0;
     }
 }
 
-
+void launchDot(int index, CRGB color) {
+  currentPalette[(-loopDirection)*waveLength*index -1] = color;
+  currentPalette[(-loopDirection)*waveLength*index] = color;
+  currentPalette[(-loopDirection)*waveLength*index +1] = color;
+}
 
 void FillLEDsFromPaletteColors( CRGB leds[], CRGBPalette256 palette, TBlendType blending, uint8_t colorIndex, bool reverse)
 {
     uint8_t brightness = 255;
     if (reverse) {
-      for( int i = NUM_LEDS; i >= 0; i--) {
+      for( int i = NUM_LEDS*3; i >= 0; i--) {
           leds[i] = ColorFromPalette( palette, colorIndex - NUM_LEDS/5, brightness, blending);
           colorIndex += 2;
       }
