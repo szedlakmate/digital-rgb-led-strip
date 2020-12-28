@@ -1,13 +1,13 @@
 #include <FastLED.h>
 
-#define LED_PIN     5
-#define NUM_LEDS    51
-#define BRIGHTNESS  150
-#define LED_TYPE    WS2811
+#define LED_PIN     12
+#define NUM_LEDS    300
+#define BRIGHTNESS  50
+#define LED_TYPE    WS2812B
 #define COLOR_ORDER BRG
 CRGB leds[NUM_LEDS];
 
-#define UPDATES_PER_SECOND 80
+#define UPDATES_PER_SECOND 10
 // This example shows several ways to set up and use 'palettes' of colors
 // with FastLED.
 //
@@ -33,67 +33,24 @@ TBlendType    currentBlending;
 extern CRGBPalette16 myRedWhiteBluePalette;
 extern const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;
 
+static uint8_t startIndex = 0;
+
 void setup() {
-    // ESP2886 related:
-    pinMode(10, OUTPUT);
-    pinMode(11, OUTPUT);
-    pinMode(12, OUTPUT);
-    pinMode(13, OUTPUT);
-    
     delay( 500 ); // power-up safety delay
     FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
     FastLED.setBrightness(  BRIGHTNESS );
     
-   
-    // TODO: Add serial communication
-    
     currentBlending = LINEARBLEND;
 
     // OceanColors_p, CloudColors_p, LavaColors_p, HeatColors_p, ForestColors_p, and PartyColors_p., RainbowColors_p, RainbowStripeColors_p 
-    // currentPalette = RainbowStripeColors_p ;
-    // 0 x RR-GG-BB
-    
-    // AntiqueWhite:FAEBD7,Aqua:00FFFF,Aquamarine:7FFFD4,Azure:F0FFFF,Beige:F5F5DC,Bisque:FFE4C4,
-    // Black:000000, BlanchedAlmond:FFEBCD, Blue:0000FF,BlueViolet:8A2BE2,Brown:A52A2A,BurlyWood:DEB887
-    // CadetBlue:5F9EA0,Chartreuse:7FFF00,Chocolate:D2691E,Coral:FF7F50,CornflowerBlue:6495ED
-    // Cornsilk:FFF8DC,Crimson:DC143C,Cyan:00FFFF,DarkBlue:00008B,DarkCyan:008B8B,DarkGoldenRod:B8860B
-    // DarkGray:A9A9A9,DarkGreen:006400,DarkKhaki:BDB76B,DarkMagenta:8B008B,DarkOliveGreen:556B2F
-    // DarkOrange:FF8C00,DarkOrchid:9932CC,DarkRed:8B0000,DarkSalmon:E9967A,DarkSeaGreen:8FBC8F
-    // DarkSlateBlue:483D8B,DarkSlateGray:2F4F4F,DarkTurquoise:00CED1,DarkViolet:9400D3,DeepPink:FF1493
-    // DeepSkyBlue:00BFFF,DimGray:696969,DodgerBlue:1E90FF,FireBrick:B22222,FloralWhite:FFFAF0
-    // ForestGreen:228B22,Fuchsia:FF00FF,Gainsboro:DCDCDC,GhostWhite:F8F8FF,Gold:FFD700
-    // GoldenRod:DAA520,Gray:808080,Green:008000,GreenYellow:ADFF2F,HoneyDew:F0FFF0,HotPink:FF69B4
-    // IndianRed:CD5C5C,Indigo:4B0082,Ivory:FFFFF0,Khaki:F0E68C,Lavender:E6E6FA,LavenderBlush:FFF0F5
-    // LawnGreen:7CFC00,LemonChiffon:FFFACD,LightBlue:ADD8E6,LightCoral:F08080,LightCyan:E0FFFF
-    // LightGoldenRodYellow:FAFAD2,LightGray:D3D3D3,LightGreen:90EE90,LightPink:FFB6C1,LightSalmon:FFA07A
-    // LightSeaGreen:20B2AA,LightSkyBlue:87CEFA,LightSlateGray:778899,LightSteelBlue:B0C4DE,
-    // LightYellow:FFFFE0,Lime:00FF00,LimeGreen:32CD32,Linen:FAF0E6,Magenta:FF00FF,Maroon:800000
-    // MediumAquaMarine:66CDAA,MediumBlue:0000CD,MediumOrchid:BA55D3,MediumPurple:9370DB
-    // MediumSeaGreen:3CB371,MediumSlateBlue:7B68EE,MediumSpringGreen:00FA9A,MediumTurquoise:48D1CC
-    // MediumVioletRed:C71585,MidnightBlue:191970,MintCream:F5FFFA,Navy:000080,Olive:808000
-    // OliveDrab:6B8E23,Orange:FFA500,OrangeRed:FF4500,Orchid:DA70D6,PaleGreen:98FB98,Peru:CD853F
-    // Yellow:FFFF00,White:FFFFFF,Cyan:00FFFF
-    fill_solid( currentPalette, 16, 0x000033);
-    currentPalette[0] = 0x000000;
-    
+     currentPalette = RainbowStripeColors_p ;
+  
 }
 
 
 void loop()
 {
-    // ESP2886 related:
-    digitalWrite(10, HIGH);
-    digitalWrite(11, HIGH);
-    digitalWrite(12, LOW);
-    digitalWrite(13, LOW);
-  
-    // ChangePalettePeriodically();
-    
-    static uint8_t startIndex = 0;
     startIndex = startIndex + 1; /* motion speed */
-
-    
-    
     FillLEDsFromPaletteColors(startIndex); //startIndex
     
     //color = Blue
@@ -111,7 +68,7 @@ void FillLEDsFromPaletteColors( uint8_t colorIndex)
     
     for( int i = 0; i < NUM_LEDS; i++) {
         leds[i] = ColorFromPalette( currentPalette, colorIndex, brightness, currentBlending);
-        colorIndex += 3;
+        colorIndex += 1;
     }
 }
 
@@ -241,4 +198,3 @@ const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM =
 // palette to Green (0,255,0) and Blue (0,0,255), and then retrieved 
 // the first sixteen entries from the virtual palette (of 256), you'd get
 // Green, followed by a smooth gradient from green-to-blue, and then Blue.
-
