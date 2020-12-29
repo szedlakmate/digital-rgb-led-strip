@@ -32,7 +32,7 @@ CRGB leds[NUM_LEDS];
 CRGBPalette16 currentPalette;
 TBlendType    currentBlending;
 static uint8_t startIndex = 0;
-static bool reversed = true;
+static bool reversed = false;
 
 void setup() {
     delay( 500 ); // power-up safety delay
@@ -61,16 +61,16 @@ void loop()
 
 
 
-void FillLEDsFromPaletteColors( uint8_t colorIndex)
+void FillLEDsFromPaletteColors( uint8_t looper)
 {
     for( int i = 0; i < NUM_LEDS; i++) {
       int index = i;
       if (reversed) {
         index = NUM_LEDS - i -1;
       }
-        leds[index] = ColorFromPalette( currentPalette, colorIndex, BRIGHTNESS, currentBlending);
-        // TODO: This is bad. indexing is complety wrong.
-        colorIndex +=1;
+      int colorIndex =  (i*256/NUM_LEDS);
+        leds[index] = blend(ColorFromPalette( currentPalette, colorIndex + looper/3, BRIGHTNESS, currentBlending), ColorFromPalette( currentPalette, colorIndex+1 + looper/3, BRIGHTNESS, currentBlending), 0.33*(looper%3));
+        looper += 1;
     }
 }
 
