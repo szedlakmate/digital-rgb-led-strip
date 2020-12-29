@@ -36,7 +36,7 @@ static bool reversed = true;
 
 void setup() {
     delay( 500 ); // power-up safety delay
-    FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( 0x7050FF ); // TypicalLEDStrip
+    FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( 0x6555FF ); // TypicalLEDStrip
     FastLED.setBrightness(  BRIGHTNESS );
     
     currentBlending = LINEARBLEND;
