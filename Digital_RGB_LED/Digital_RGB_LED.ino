@@ -1,13 +1,22 @@
 #include <FastLED.h>
 
-#define LED_PIN     5
-#define NUM_LEDS    51
-#define BRIGHTNESS  150
-#define LED_TYPE    WS2811
-#define COLOR_ORDER BRG
+#define LED_PIN     12
+#define NUM_LEDS    300
+#define BRIGHTNESS  250
+#define LED_TYPE    WS2812B
+#define COLOR_ORDER GRB
 CRGB leds[NUM_LEDS];
 
-#define UPDATES_PER_SECOND 80
+
+// Wave per miniute. 1 means it takes 60 sec to flow through each LEDs
+// Max BPM*RESOLUTION is ~15 for 300 LEDS
+#define BPM 2.0
+
+// Advised max (sub) RESOLUTION is ~3
+#define RESOLUTION 2
+
+// Scales the wave's length. >1.0 means overlays the stripe. Default: 1.0
+#define WAVE_LENGTH_SCALE 1.00
 
 // This example shows several ways to set up and use 'palettes' of colors
 // with FastLED.
@@ -30,60 +39,61 @@ CRGB leds[NUM_LEDS];
 
 CRGBPalette16 currentPalette;
 TBlendType    currentBlending;
-
-extern CRGBPalette16 myRedWhiteBluePalette;
-extern const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;
+static long startIndex = 0;
+static bool reversed = true;
 
 void setup() {
-    // ESP2886 related:
-    pinMode(10, OUTPUT);
-    pinMode(11, OUTPUT);
-    pinMode(12, OUTPUT);
-    pinMode(13, OUTPUT);
-    
-    delay( 3000 ); // power-up safety delay
-    FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
+    delay( 500 ); // power-up safety delay
+    FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip ); // TypicalLEDStrip
     FastLED.setBrightness(  BRIGHTNESS );
     
-    // OceanColors_p, CloudColors_p, LavaColors_p, ForestColors_p, and PartyColors_p., RainbowColors_p
-    currentPalette = RainbowColors_p;
-    // TODO: Add serial communication
-    
     currentBlending = LINEARBLEND;
+
+    // OceanColors_p, CloudColors_p, LavaColors_p, HeatColors_p, ForestColors_p, and PartyColors_p., RainbowColors_p, RainbowStripeColors_p 
+     currentPalette = RainbowColors_p ;
+
+//     Serial.begin(19200); 
 }
 
 
 void loop()
 {
-    // ESP2886 related:
-    digitalWrite(10, HIGH);
-    digitalWrite(11, HIGH);
-    digitalWrite(12, LOW);
-    digitalWrite(13, LOW);
-  
-    // ChangePalettePeriodically();
-    
-    static uint8_t startIndex = 0;
     startIndex = startIndex + 1; /* motion speed */
-    
     FillLEDsFromPaletteColors(startIndex); //startIndex
+    
     //color = Blue
-    //SetColorPalette();
+    // SetColorPalette(CRGB::Red);
     
     FastLED.show();
-    FastLED.delay(1000 / UPDATES_PER_SECOND);
+    FastLED.delay(60000.0 / (float)(NUM_LEDS * RESOLUTION * BPM));
 }
 
 
 
-void FillLEDsFromPaletteColors( uint8_t colorIndex)
+void FillLEDsFromPaletteColors(long colorShift)
 {
-    uint8_t brightness = 255;
-    
     for( int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = ColorFromPalette( currentPalette, colorIndex, brightness, currentBlending);
-        colorIndex += 3;
+      int index = i;
+      if (reversed) {
+        index = NUM_LEDS - i -1;
+      }
+      
+      long colorIndex = ((long) i * (long) 256)/ (float) WAVE_LENGTH_SCALE / ((long)NUM_LEDS) + colorShift / (long) RESOLUTION;
+     
+      if (currentBlending == NOBLEND || RESOLUTION == 1)
+      {
+         leds[index] = ColorFromPalette( currentPalette, colorIndex + colorShift / (long) RESOLUTION, BRIGHTNESS, currentBlending);
+      } 
+      else {
+        // Apply smoothing
+         leds[index] = blend(
+            ColorFromPalette( currentPalette, colorIndex, BRIGHTNESS, currentBlending),
+            ColorFromPalette( currentPalette, colorIndex + 1, BRIGHTNESS, currentBlending),
+            (float)(colorShift % RESOLUTION)*255.0/(float)RESOLUTION);
+      }
+      
     }
+//     Serial.println(colorShift / (long) RESOLUTION);
 }
 
 
@@ -91,46 +101,17 @@ void FillLEDsFromPaletteColors( uint8_t colorIndex)
 //
 // FastLED provides several 'preset' palettes: RainbowColors_p, RainbowStripeColors_p,
 // OceanColors_p, CloudColors_p, LavaColors_p, ForestColors_p, and PartyColors_p.
-//
-// Additionally, you can manually define your own color palettes, or you can write
-// code that creates color palettes on the fly.  All are shown here.
 
-void ChangePalettePeriodically()
-{
-    uint8_t secondHand = (millis() / 1000) % 60;
-    static uint8_t lastSecond = 99;
-    
-    if( lastSecond != secondHand) {
-        lastSecond = secondHand;
-        if( secondHand ==  0)  { currentPalette = RainbowColors_p;         currentBlending = LINEARBLEND; }
-        if( secondHand == 10)  { currentPalette = RainbowStripeColors_p;   currentBlending = NOBLEND;  }
-        if( secondHand == 15)  { currentPalette = RainbowStripeColors_p;   currentBlending = LINEARBLEND; }
-        if( secondHand == 20)  { SetupPurpleAndGreenPalette();             currentBlending = LINEARBLEND; }
-        if( secondHand == 25)  { SetupTotallyRandomPalette();              currentBlending = LINEARBLEND; }
-        if( secondHand == 30)  { SetupBlackAndWhiteStripedPalette();       currentBlending = NOBLEND; }
-        if( secondHand == 35)  { SetupBlackAndWhiteStripedPalette();       currentBlending = LINEARBLEND; }
-        if( secondHand == 40)  { currentPalette = CloudColors_p;           currentBlending = LINEARBLEND; }
-        if( secondHand == 45)  { currentPalette = PartyColors_p;           currentBlending = LINEARBLEND; }
-        if( secondHand == 50)  { currentPalette = myRedWhiteBluePalette_p; currentBlending = NOBLEND;  }
-        if( secondHand == 55)  { currentPalette = myRedWhiteBluePalette_p; currentBlending = LINEARBLEND; }
-    }
-}
 
-// This function fills the palette with totally random colors.
-void SetupTotallyRandomPalette()
+/*
+void SetColorPalette(String color)
 {
-    for( int i = 0; i < 16; i++) {
-        currentPalette[i] = CHSV( random8(), 255, random8());
-    }
-}
 
-void SetColorPalette()
-{
  
     // 'black out' all 16 palette entries...
-    fill_solid( currentPalette, 16, CRGB::Green);
+    fill_solid( currentPalette, 16, color);
 }
-
+*/
 // This function sets up a palette of black and white stripes,
 // using code.  Since the palette is effectively an array of
 // sixteen CRGB colors, the various fill_* functions can be used
@@ -211,4 +192,3 @@ const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM =
 // palette to Green (0,255,0) and Blue (0,0,255), and then retrieved 
 // the first sixteen entries from the virtual palette (of 256), you'd get
 // Green, followed by a smooth gradient from green-to-blue, and then Blue.
-
