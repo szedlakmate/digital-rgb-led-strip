@@ -2,14 +2,14 @@
 
 #define LED_PIN     12
 #define NUM_LEDS    300
-#define BRIGHTNESS  150
+#define BRIGHTNESS  250
 #define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB
 CRGB leds[NUM_LEDS];
 
 
 
-#define UPDATES_PER_SECOND 10
+#define UPDATES_PER_SECOND 5
 // This example shows several ways to set up and use 'palettes' of colors
 // with FastLED.
 //
@@ -36,7 +36,7 @@ static bool reversed = true;
 
 void setup() {
     delay( 500 ); // power-up safety delay
-    FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( 0x6555FF ); // TypicalLEDStrip
+    FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip ); // TypicalLEDStrip
     FastLED.setBrightness(  BRIGHTNESS );
     
     currentBlending = LINEARBLEND;
@@ -56,7 +56,7 @@ void loop()
     // SetColorPalette(CRGB::Red);
     
     FastLED.show();
-    FastLED.delay(1000 / UPDATES_PER_SECOND);
+    FastLED.delay(1000.0 / UPDATES_PER_SECOND);
 }
 
 
