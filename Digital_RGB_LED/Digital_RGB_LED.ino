@@ -8,8 +8,16 @@
 CRGB leds[NUM_LEDS];
 
 
+// Wave per miniute. 1 means it takes 60 sec to flow through each LEDs
+// Max BPM*RESOLUTION is ~15 for 300 LEDS
+#define BPM 2.0
 
-#define UPDATES_PER_SECOND 7
+// Advised max (sub) RESOLUTION is ~3
+#define RESOLUTION 2
+
+// Scales the wave's length. >1.0 means overlays the stripe. Default: 1.0
+#define WAVE_LENGTH_SCALE 1.00
+
 // This example shows several ways to set up and use 'palettes' of colors
 // with FastLED.
 //
@@ -31,7 +39,7 @@ CRGB leds[NUM_LEDS];
 
 CRGBPalette16 currentPalette;
 TBlendType    currentBlending;
-static uint8_t startIndex = 0;
+static long startIndex = 0;
 static bool reversed = true;
 
 void setup() {
@@ -44,7 +52,7 @@ void setup() {
     // OceanColors_p, CloudColors_p, LavaColors_p, HeatColors_p, ForestColors_p, and PartyColors_p., RainbowColors_p, RainbowStripeColors_p 
      currentPalette = RainbowColors_p ;
 
-//     Serial.begin(9600); 
+//     Serial.begin(19200); 
 }
 
 
@@ -57,7 +65,7 @@ void loop()
     // SetColorPalette(CRGB::Red);
     
     FastLED.show();
-    FastLED.delay(1000.0 / UPDATES_PER_SECOND);
+    FastLED.delay(60000.0 / (float)(NUM_LEDS * RESOLUTION * BPM));
 }
 
 
@@ -69,10 +77,23 @@ void FillLEDsFromPaletteColors(long colorShift)
       if (reversed) {
         index = NUM_LEDS - i -1;
       }
-      long colorIndex = ((long) i * (long) 256)/(long)NUM_LEDS;
-//      Serial.println(colorIndex);
-      leds[index] = ColorFromPalette( currentPalette, colorIndex + colorShift, BRIGHTNESS, currentBlending);
+      
+      long colorIndex = ((long) i * (long) 256)/ (float) WAVE_LENGTH_SCALE / ((long)NUM_LEDS) + colorShift / (long) RESOLUTION;
+     
+      if (currentBlending == NOBLEND || RESOLUTION == 1)
+      {
+         leds[index] = ColorFromPalette( currentPalette, colorIndex + colorShift / (long) RESOLUTION, BRIGHTNESS, currentBlending);
+      } 
+      else {
+        // Apply smoothing
+         leds[index] = blend(
+            ColorFromPalette( currentPalette, colorIndex, BRIGHTNESS, currentBlending),
+            ColorFromPalette( currentPalette, colorIndex + 1, BRIGHTNESS, currentBlending),
+            (float)(colorShift % RESOLUTION)*255.0/(float)RESOLUTION);
+      }
+      
     }
+//     Serial.println(colorShift / (long) RESOLUTION);
 }
 
 
