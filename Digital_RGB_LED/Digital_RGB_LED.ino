@@ -9,7 +9,7 @@ CRGB leds[NUM_LEDS];
 
 
 
-#define UPDATES_PER_SECOND 5
+#define UPDATES_PER_SECOND 7
 // This example shows several ways to set up and use 'palettes' of colors
 // with FastLED.
 //
@@ -43,7 +43,8 @@ void setup() {
 
     // OceanColors_p, CloudColors_p, LavaColors_p, HeatColors_p, ForestColors_p, and PartyColors_p., RainbowColors_p, RainbowStripeColors_p 
      currentPalette = RainbowColors_p ;
-  
+
+//     Serial.begin(9600); 
 }
 
 
@@ -61,16 +62,16 @@ void loop()
 
 
 
-void FillLEDsFromPaletteColors( uint8_t colorIndex)
+void FillLEDsFromPaletteColors(long colorShift)
 {
     for( int i = 0; i < NUM_LEDS; i++) {
       int index = i;
       if (reversed) {
         index = NUM_LEDS - i -1;
       }
-        leds[index] = ColorFromPalette( currentPalette, colorIndex, BRIGHTNESS, currentBlending);
-        // TODO: This is bad. indexing is complety wrong.
-        colorIndex +=1;
+      long colorIndex = ((long) i * (long) 256)/(long)NUM_LEDS;
+//      Serial.println(colorIndex);
+      leds[index] = ColorFromPalette( currentPalette, colorIndex + colorShift, BRIGHTNESS, currentBlending);
     }
 }
 
