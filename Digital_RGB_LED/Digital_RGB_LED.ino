@@ -10,10 +10,13 @@ CRGB leds[NUM_LEDS];
 
 // Wave per miniute. 1 means it takes 60 sec to flow through each LEDs
 // Max BPM*RESOLUTION is ~15 for 300 LEDS
-#define BPM 5.0
+#define BPM 1.0
 
-// Advised max (sub) RESOLUTION is ~3
-#define RESOLUTION 1
+
+
+// Advised max (sub) RESOLUTION is ~3, Min 1, Default 1
+// *** Set to 1 to reach FAST animation
+#define RESOLUTION 2
 
 // Scales the wave's length. >1.0 means overlays the stripe. Default: 1.0
 #define WAVE_LENGTH_SCALE 1.00
@@ -42,8 +45,11 @@ TBlendType    currentBlending;
 static long startIndex = 0;
 static bool reversed = true;
 
+// Determine delay correction for raw and smoothened animations
+static int correction = 10 + min(max(RESOLUTION-1, 0), 1)*45 ; // Max speed: RAW: 3 sec/300 LEDS  SMOOTHENED: 17 sec/300 LEDS
+
 // Determine delay time based on BPM and RESOLUTION
-static int delayDelta = max(60000.0 / (float)(NUM_LEDS * RESOLUTION * BPM) - 100, 0) ; // correction of calculation time loss
+static int delayDelta = max(60000.0 / ((float)NUM_LEDS * (float)RESOLUTION * BPM) - correction, 0) ; // correction of calculation time loss
 
 void setup() {
     delay( 500 ); // power-up safety delay
@@ -85,6 +91,7 @@ void FillLEDsFromPaletteColors(long colorShift, bool shiftOnly)
         index = NUM_LEDS - i -1;
       }
 
+      // Speed up calculation when possible by shifting the leds
       if (shiftOnly && RESOLUTION == 1) {
         if (reversed) {
           if (index != 0) {
