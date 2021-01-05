@@ -2,7 +2,7 @@
 
 #define LED_PIN     12
 #define NUM_LEDS    300
-#define BRIGHTNESS  250
+#define BRIGHTNESS  250 // max: 250
 #define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB
 CRGB leds[NUM_LEDS];
@@ -10,10 +10,10 @@ CRGB leds[NUM_LEDS];
 
 // Wave per miniute. 1 means it takes 60 sec to flow through each LEDs
 // Max BPM*RESOLUTION is ~15 for 300 LEDS
-#define BPM 2.0
+#define BPM 5.0
 
 // Advised max (sub) RESOLUTION is ~3
-#define RESOLUTION 2
+#define RESOLUTION 1
 
 // Scales the wave's length. >1.0 means overlays the stripe. Default: 1.0
 #define WAVE_LENGTH_SCALE 1.00
@@ -42,15 +42,22 @@ TBlendType    currentBlending;
 static long startIndex = 0;
 static bool reversed = true;
 
+// Determine delay time based on BPM and RESOLUTION
+static int delayDelta = max(60000.0 / (float)(NUM_LEDS * RESOLUTION * BPM) - 100, 0) ; // correction of calculation time loss
+
 void setup() {
     delay( 500 ); // power-up safety delay
+    
     FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip ); // TypicalLEDStrip
     FastLED.setBrightness(  BRIGHTNESS );
     
     currentBlending = LINEARBLEND;
 
     // OceanColors_p, CloudColors_p, LavaColors_p, HeatColors_p, ForestColors_p, and PartyColors_p., RainbowColors_p, RainbowStripeColors_p 
-     currentPalette = RainbowColors_p ;
+     currentPalette = RainbowStripeColors_p ;
+
+     // Initialize LED colors
+     FillLEDsFromPaletteColors(startIndex, false);
 
 //     Serial.begin(19200); 
 }
@@ -58,24 +65,38 @@ void setup() {
 
 void loop()
 {
-    startIndex = startIndex + 1; /* motion speed */
-    FillLEDsFromPaletteColors(startIndex); //startIndex
+    FillLEDsFromPaletteColors(startIndex, true);
     
     //color = Blue
     // SetColorPalette(CRGB::Red);
     
     FastLED.show();
-    FastLED.delay(60000.0 / (float)(NUM_LEDS * RESOLUTION * BPM));
+    FastLED.delay(delayDelta);
+    startIndex = startIndex + 1; /* motion speed */
 }
 
 
 
-void FillLEDsFromPaletteColors(long colorShift)
+void FillLEDsFromPaletteColors(long colorShift, bool shiftOnly)
 {
     for( int i = 0; i < NUM_LEDS; i++) {
       int index = i;
       if (reversed) {
         index = NUM_LEDS - i -1;
+      }
+
+      if (shiftOnly && RESOLUTION == 1) {
+        if (reversed) {
+          if (index != 0) {
+            leds[index] = leds[index - 1];
+            continue;
+          }
+        } else {
+          if (index != NUM_LEDS-1) {
+             leds[index] = leds[index + 1];
+             continue;
+          }
+        }
       }
       
       long colorIndex = ((long) i * (long) 256)/ (float) WAVE_LENGTH_SCALE / ((long)NUM_LEDS) + colorShift / (long) RESOLUTION;
@@ -91,7 +112,6 @@ void FillLEDsFromPaletteColors(long colorShift)
             ColorFromPalette( currentPalette, colorIndex + 1, BRIGHTNESS, currentBlending),
             (float)(colorShift % RESOLUTION)*255.0/(float)RESOLUTION);
       }
-      
     }
 //     Serial.println(colorShift / (long) RESOLUTION);
 }
