@@ -2,23 +2,27 @@
 
 #define LED_PIN     52
 #define NUM_LEDS    300
-#define BRIGHTNESS  250 // max: 250
 #define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB
 CRGB leds[NUM_LEDS];
 
+#define BRIGHTNESS_INPUT_PIN  1
+#define BPM_INPUT_PIN  2
+#define WAVE_LENGTH_INPUT_PIN  3
 
-// Wave per miniute. 1 means it takes 60 sec to flow through each LEDs
-// Max BPM is ~10 for 300 LEDS (RESOLUTION=1) 
-// Max BPM*RESOLUTION is ~3 for 300 LEDS (RESOLUTION>1) 
-#define BPM 2.0
+#define FILTER_FACTOR 3
 
 // Advised max (sub) RESOLUTION is ~3, Min 1, Default 1
 // *** Set to 1 to reach FAST animation
 #define RESOLUTION 2
 
+// Wave per miniute. 1 means it takes 60 sec to flow through each LEDs
+// Max BPM*RESOLUTION is ~15 for 300 LEDS
+#define BPM_MAX (float) 12/RESOLUTION
+
+
 // Scales the wave's length. >1.0 means overlays the stripe. Default: 1.0
-#define WAVE_LENGTH_SCALE 1.00
+#define WAVE_LENGTH_SCALE_MAX  2.0
 
 // This example shows several ways to set up and use 'palettes' of colors
 // with FastLED.
@@ -38,9 +42,14 @@ CRGB leds[NUM_LEDS];
 // FastLED compact palettes are at the bottom of this file.
 
 
-
 CRGBPalette16 currentPalette;
 TBlendType    currentBlending;
+
+// These will be overridden in the setup block
+float WAVE_LENGTH_SCALE = 0.0;
+float BPM = 0.0;
+int BRIGHTNESS = 0;  // max: 250;
+
 static long startIndex = 0;
 static bool reversed = true;
 
@@ -65,13 +74,22 @@ void setup() {
 
      // Turning ON Serial communication may slow down the animation
 //     Serial.begin(9600); 
+
+     applyConfiguration();
+
+     // Correcting initial zero values 
+     WAVE_LENGTH_SCALE *= FILTER_FACTOR;
+     BPM *= FILTER_FACTOR;
+     BRIGHTNESS *= FILTER_FACTOR;
 }
 
 
 void loop()
 {
-    FillLEDsFromPaletteColors(startIndex, true);
-
+    applyConfiguration();
+    // Buttons require constant refreshing
+    FillLEDsFromPaletteColors(startIndex, false);
+    
     // SetColorPalette(CRGB::Red);
     
     FastLED.show();
@@ -83,6 +101,46 @@ void loop()
 //    Serial.print("  delayDelta - timer + stopper: ");
 //    Serial.println(delayDelta - timer + stopper);
     stopper = timer;
+}
+
+void applyConfiguration() {
+    setBrightnessByPotmeter(analogRead(BRIGHTNESS_INPUT_PIN));
+    setBPM(analogRead(BPM_INPUT_PIN));
+    setWaveLengthByPotmeter(analogRead(WAVE_LENGTH_INPUT_PIN));
+}
+
+int determineBrightness(long potMeterValue) {
+  return potMeterValue * 250L / 1023L;
+}
+
+float determineBPM(long potMeterValue) {
+  return max(potMeterValue * BPM_MAX / 1023.0, 0.1);
+}
+
+float determineWaveLength(long potMeterValue) {
+  float rawWaveLength = max(potMeterValue * WAVE_LENGTH_SCALE_MAX / 1023.0, 0.05);
+  // Filter noise by rounding scaled value. Helps at very short wave lengths
+  return  ((float) round(rawWaveLength * 50)) / 50.0;
+}
+
+void setBrightnessByPotmeter(long potMeterValue) {
+    BRIGHTNESS += (determineBrightness(potMeterValue) - BRIGHTNESS) / FILTER_FACTOR;
+    Serial.print("  BRIGHTNESS: ");
+    Serial.print(BRIGHTNESS);
+    FastLED.setBrightness(  BRIGHTNESS );
+}
+
+void setBPM(float potMeterValue) {
+    BPM += (determineBPM(potMeterValue) - BPM) / FILTER_FACTOR;
+    Serial.print("  BPM: ");
+    Serial.print(BPM);
+    delayDelta = max(60000.0 / ((float)NUM_LEDS * (float)RESOLUTION * BPM) - correction, 0); // correction of calculation time loss
+}
+
+void setWaveLengthByPotmeter(float potMeterValue) {
+    WAVE_LENGTH_SCALE += (determineWaveLength(potMeterValue) - WAVE_LENGTH_SCALE) / FILTER_FACTOR;
+    Serial.print("  WAVE_LENGTH_SCALE: ");
+    Serial.println(WAVE_LENGTH_SCALE);
 }
 
 void FillLEDsFromPaletteColors(long colorShift, bool shiftOnly)
