@@ -1,25 +1,35 @@
 #include <FastLED.h>
 
-#define LED_PIN     52
+#define LED_PIN  12
+#include <Arduino.h>
+// Download from here: https://www.instructables.com/Tutorial-How-to-4-Digit-Display-Interface-With-Ard/
+#include <TM1637Display.h>
+
+// Module connection pins (Digital Pins)
+#define CLK 2
+#define DIO 3
+
+#define LED_PIN     12
+
 #define NUM_LEDS    300
 #define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB
 CRGB leds[NUM_LEDS];
 
+TM1637Display display(CLK, DIO);
+
 #define BRIGHTNESS_INPUT_PIN  1
-#define BPM_INPUT_PIN  2
-#define WAVE_LENGTH_INPUT_PIN  3
+#define WAVE_LENGTH_INPUT_PIN  2
+#define BPM_INPUT_PIN  3
 
 #define FILTER_FACTOR 3
 
 // Advised max (sub) RESOLUTION is ~3, Min 1, Default 1
 // *** Set to 1 to reach FAST animation
-#define RESOLUTION 2
+#define RESOLUTION 1
 
-// Wave per miniute. 1 means it takes 60 sec to flow through each LEDs
 // Max BPM*RESOLUTION is ~15 for 300 LEDS
-#define BPM_MAX (float) 12/RESOLUTION
-
+#define BPM_MAX 50.0
 
 // Scales the wave's length. >1.0 means overlays the stripe. Default: 1.0
 #define WAVE_LENGTH_SCALE_MAX  2.0
@@ -53,7 +63,6 @@ int BRIGHTNESS = 0;  // max: 250;
 static long startIndex = 0;
 static bool reversed = true;
 
-
 // Determine delay time based on BPM and RESOLUTION
 static int delayDelta = 60000.0 / ((float)NUM_LEDS * (float)RESOLUTION * BPM) ;
 long stopper = 0;
@@ -67,7 +76,7 @@ void setup() {
     currentBlending = LINEARBLEND;
 
     // OceanColors_p, CloudColors_p, LavaColors_p, HeatColors_p, ForestColors_p, and PartyColors_p., RainbowColors_p, RainbowStripeColors_p 
-     currentPalette = RainbowStripeColors_p ;
+     currentPalette = RainbowColors_p ;
 
      // Initialize LED colors
      FillLEDsFromPaletteColors(startIndex, false);
@@ -81,6 +90,8 @@ void setup() {
      WAVE_LENGTH_SCALE *= FILTER_FACTOR;
      BPM *= FILTER_FACTOR;
      BRIGHTNESS *= FILTER_FACTOR;
+
+     display.setBrightness(0x08);
 }
 
 
@@ -97,10 +108,39 @@ void loop()
 
     // Determine accurate sleep time
     long timer = millis();
-    FastLED.delay(max(delayDelta - timer + stopper, 0));
+    int sleepTime = max(delayDelta - timer + stopper, 0);
+    FastLED.delay(sleepTime);
 //    Serial.print("  delayDelta - timer + stopper: ");
-//    Serial.println(delayDelta - timer + stopper);
+//    Serial.println(sleepTime);
     stopper = timer;
+
+    showBPM(sleepTime>0);
+}
+
+float showBPM(bool bpmIsValid) {
+  // Set segment display
+  uint8_t data[] = { 0x00, 0x80, 0x00, 0x00 };
+  
+  // Selectively set different digits
+  data[3] += display.encodeDigit((int) (BPM * 100) % 10);
+  
+  if (BPM > 0.1) {
+    data[2] += display.encodeDigit((int) (BPM * 10) % 10);
+  }
+  if (BPM > 1) {
+    data[1] += display.encodeDigit((int) BPM  % 10);
+  }
+  if (BPM > 10) {
+    data[0] += display.encodeDigit((int)( BPM / 10) % 10);
+  }
+
+
+    
+  if (!bpmIsValid) {
+    data[0] = 0x49;
+  }
+ 
+  display.setSegments(data);
 }
 
 void applyConfiguration() {
@@ -114,7 +154,7 @@ int determineBrightness(long potMeterValue) {
 }
 
 float determineBPM(long potMeterValue) {
-  return max(potMeterValue * BPM_MAX / 1023.0, 0.1);
+  return max(potMeterValue * BPM_MAX / 1023.0, 0.01);
 }
 
 float determineWaveLength(long potMeterValue) {
@@ -125,22 +165,22 @@ float determineWaveLength(long potMeterValue) {
 
 void setBrightnessByPotmeter(long potMeterValue) {
     BRIGHTNESS += (determineBrightness(potMeterValue) - BRIGHTNESS) / FILTER_FACTOR;
-    Serial.print("  BRIGHTNESS: ");
-    Serial.print(BRIGHTNESS);
+//    Serial.print("  BRIGHTNESS: ");
+//    Serial.print(BRIGHTNESS);
     FastLED.setBrightness(  BRIGHTNESS );
 }
 
 void setBPM(float potMeterValue) {
     BPM += (determineBPM(potMeterValue) - BPM) / FILTER_FACTOR;
-    Serial.print("  BPM: ");
-    Serial.print(BPM);
-    delayDelta = max(60000.0 / ((float)NUM_LEDS * (float)RESOLUTION * BPM) - correction, 0); // correction of calculation time loss
+//    Serial.print("  BPM: ");
+//    Serial.print(BPM);
+    delayDelta = 60000.0 / ((float)NUM_LEDS * (float)RESOLUTION * BPM); // correction of calculation time loss
 }
 
 void setWaveLengthByPotmeter(float potMeterValue) {
     WAVE_LENGTH_SCALE += (determineWaveLength(potMeterValue) - WAVE_LENGTH_SCALE) / FILTER_FACTOR;
-    Serial.print("  WAVE_LENGTH_SCALE: ");
-    Serial.println(WAVE_LENGTH_SCALE);
+//    Serial.print("  WAVE_LENGTH_SCALE: ");
+//    Serial.println(WAVE_LENGTH_SCALE);
 }
 
 void FillLEDsFromPaletteColors(long colorShift, bool shiftOnly)
