@@ -1,6 +1,6 @@
 #include <FastLED.h>
 
-#define LED_PIN     12
+#define LED_PIN     52
 #define NUM_LEDS    300
 #define BRIGHTNESS  250 // max: 250
 #define LED_TYPE    WS2812B
@@ -9,10 +9,9 @@ CRGB leds[NUM_LEDS];
 
 
 // Wave per miniute. 1 means it takes 60 sec to flow through each LEDs
-// Max BPM*RESOLUTION is ~15 for 300 LEDS
-#define BPM 1.0
-
-
+// Max BPM is ~10 for 300 LEDS (RESOLUTION=1) 
+// Max BPM*RESOLUTION is ~3 for 300 LEDS (RESOLUTION>1) 
+#define BPM 2.0
 
 // Advised max (sub) RESOLUTION is ~3, Min 1, Default 1
 // *** Set to 1 to reach FAST animation
@@ -45,11 +44,10 @@ TBlendType    currentBlending;
 static long startIndex = 0;
 static bool reversed = true;
 
-// Determine delay correction for raw and smoothened animations
-static int correction = 10 + min(max(RESOLUTION-1, 0), 1)*45 ; // Max speed: RAW: 3 sec/300 LEDS  SMOOTHENED: 17 sec/300 LEDS
 
 // Determine delay time based on BPM and RESOLUTION
-static int delayDelta = max(60000.0 / ((float)NUM_LEDS * (float)RESOLUTION * BPM) - correction, 0) ; // correction of calculation time loss
+static int delayDelta = 60000.0 / ((float)NUM_LEDS * (float)RESOLUTION * BPM) ;
+long stopper = 0;
 
 void setup() {
     delay( 500 ); // power-up safety delay
@@ -65,23 +63,27 @@ void setup() {
      // Initialize LED colors
      FillLEDsFromPaletteColors(startIndex, false);
 
-//     Serial.begin(19200); 
+     // Turning ON Serial communication may slow down the animation
+//     Serial.begin(9600); 
 }
 
 
 void loop()
 {
     FillLEDsFromPaletteColors(startIndex, true);
-    
-    //color = Blue
+
     // SetColorPalette(CRGB::Red);
     
     FastLED.show();
-    FastLED.delay(delayDelta);
-    startIndex = startIndex + 1; /* motion speed */
+    startIndex = startIndex + 1;
+
+    // Determine accurate sleep time
+    long timer = millis();
+    FastLED.delay(max(delayDelta - timer + stopper, 0));
+//    Serial.print("  delayDelta - timer + stopper: ");
+//    Serial.println(delayDelta - timer + stopper);
+    stopper = timer;
 }
-
-
 
 void FillLEDsFromPaletteColors(long colorShift, bool shiftOnly)
 {
