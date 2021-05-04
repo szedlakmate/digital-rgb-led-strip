@@ -1,6 +1,6 @@
 #include <FastLED.h>
 
-#define LED_PIN     52
+#define LED_PIN     53
 #define NUM_LEDS    300
 #define BRIGHTNESS  250 // max: 250
 #define LED_TYPE    WS2812B
@@ -15,7 +15,7 @@ CRGB leds[NUM_LEDS];
 
 // Advised max (sub) RESOLUTION is ~3, Min 1, Default 1
 // *** Set to 1 to reach FAST animation
-#define RESOLUTION 2
+#define RESOLUTION 1
 
 // Scales the wave's length. >1.0 means overlays the stripe. Default: 1.0
 #define WAVE_LENGTH_SCALE 1.00
