@@ -24,6 +24,8 @@ float prevavg = 0;              // previous average
 int count = 0;                  // counting readings' elements
 int dropcount = 0;              // counting the measurement anomalies
 
+int appliedBrightness = BRIGHTNESS;
+
 // Anything over 50 cm (2900 us(?) pulse) is "out of range"
 const unsigned int MAX_DIST = 3300;
 
@@ -74,7 +76,7 @@ void setup() {
     delay( 500 ); // power-up safety delay
     
     FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip ); // TypicalLEDStrip
-    FastLED.setBrightness(  BRIGHTNESS );
+    FastLED.setBrightness(  appliedBrightness );
     
     currentBlending = LINEARBLEND;
 
@@ -113,7 +115,9 @@ void loop()
     measure();
     Serial.println(average);
     if (average > 0) {
-      FastLED.setBrightness( min( average, 250) );
+      // Smoothen brightness change
+      appliedBrightness = (appliedBrightness + min(  average, 250))/2;
+      FastLED.setBrightness( appliedBrightness );
     }
   
     
@@ -239,13 +243,13 @@ void FillLEDsFromPaletteColors(long colorShift, bool shiftOnly)
      
       if (currentBlending == NOBLEND || RESOLUTION == 1)
       {
-         leds[index] = ColorFromPalette( currentPalette, colorIndex + colorShift / (long) RESOLUTION, BRIGHTNESS, currentBlending);
+         leds[index] = ColorFromPalette( currentPalette, colorIndex + colorShift / (long) RESOLUTION, appliedBrightness, currentBlending);
       } 
       else {
         // Apply smoothing
          leds[index] = blend(
-            ColorFromPalette( currentPalette, colorIndex, BRIGHTNESS, currentBlending),
-            ColorFromPalette( currentPalette, colorIndex + 1, BRIGHTNESS, currentBlending),
+            ColorFromPalette( currentPalette, colorIndex, appliedBrightness, currentBlending),
+            ColorFromPalette( currentPalette, colorIndex + 1, appliedBrightness, currentBlending),
             (float)(colorShift % RESOLUTION)*255.0/(float)RESOLUTION);
       }
     }
