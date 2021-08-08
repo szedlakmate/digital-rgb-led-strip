@@ -104,25 +104,25 @@ const TProgmemPalette16 mySunsetPurple =
 
 const TProgmemPalette16 mySunsetPeach =
 {
-    CRGB( 50,  0, 50),
-    CRGB( 54, 11, 39),
-    CRGB( 59, 22, 28),
-    CRGB( 62, 31, 19),
+    CRGB(115, 28,148),
+    CRGB(137, 43,136),
+    CRGB(159, 57,125),
+    CRGB(178, 69,115),
 
-    CRGB( 66, 39, 11),
-    CRGB( 68, 45,  5),
-    CRGB( 69, 49,  1),
-    CRGB( 70, 50,  0),
+    CRGB(194, 80,106),
+    CRGB(207, 88,100),
+    CRGB(214, 93, 96),
+    CRGB(217, 94, 94),
   
-    CRGB( 70, 50,  0),
-    CRGB( 69, 49,  1),
-    CRGB( 68, 45,  5),
-    CRGB( 66, 29, 11),
+    CRGB(217, 94, 94),
+    CRGB(214, 93, 96),
+    CRGB(207, 88,100),
+    CRGB(194, 80,106),
     
-    CRGB( 62, 31, 19),
-    CRGB( 59, 22, 28),
-    CRGB( 54, 11, 39),
-    CRGB( 50,  0, 50),
+    CRGB(178, 69,115),
+    CRGB(159, 57,125),
+    CRGB(137, 43,136),
+    CRGB(115, 28,148),
 };
 
 const TProgmemPalette16 mySunsetGreen =
