@@ -35,11 +35,11 @@ const unsigned int MAX_DIST = 3300;
 // Wave per miniute. 1 means it takes 60 sec to flow through each LEDs
 // Max BPM is ~10 for 300 LEDS (RESOLUTION=1) 
 // Max BPM*RESOLUTION is ~3 for 300 LEDS (RESOLUTION>1) 
-#define BPM 0.1
+#define BPM 6.0
 
 // Advised max (sub) RESOLUTION is ~3, Min 1, Default 1
 // *** Set to 1 to reach FAST animation
-#define RESOLUTION 2400   // Ultrasound needs: BPM * RESOLUTION >= 240
+#define RESOLUTION 100  // Ultrasound needs: BPM * RESOLUTION >= 240
 
 // Scales the wave's length. >1.0 means overlays the stripe. Default: 1.0
 #define WAVE_LENGTH_SCALE 1.00
@@ -158,6 +158,8 @@ void setup() {
     currentBlending = LINEARBLEND;
 
     // OceanColors_p, CloudColors_p, LavaColors_p, HeatColors_p, ForestColors_p, and PartyColors_p., RainbowColors_p, RainbowStripeColors_p 
+
+    // mySunsetBlue, mySunsetPurple, mySunsetPeach, mySunsetGreen
      currentPalette = mySunsetPeach ;
      newPalette = mySunsetGreen ;
 
@@ -201,6 +203,8 @@ void loop()
     FastLED.show();
     looper = looper + 1;
 
+//    looper = looper;
+
     if (looper > RESOLUTION) {
       switchPalettes();
     }
@@ -228,8 +232,8 @@ void FillLEDsFromPaletteColors( uint8_t colorIndex)
     for( int i = 0; i < NUM_LEDS; i++) {
         leds[i] = blend(
           ColorFromPalette( currentPalette, i, appliedBrightness, currentBlending),
-           ColorFromPalette( newPalette, i, appliedBrightness, currentBlending),
-           (float)looper/(float)RESOLUTION
+          ColorFromPalette( newPalette, i, appliedBrightness, currentBlending),
+           (float)looper*255.0/(float)RESOLUTION  // 0 - 255
            );
     }
 }
