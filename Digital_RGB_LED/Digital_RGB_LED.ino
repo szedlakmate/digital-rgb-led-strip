@@ -3,7 +3,7 @@
 #define LED_PIN     53    // arduino connection
 #define NUM_LEDS    300   // total num of leds on the full strip
 #define SECTIONS    4     // the num of sections the strip was broken
-#define BRIGHTNESS  100   // max: 250
+#define BRIGHTNESS  250   // max: 250
 #define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB
 CRGB leds[NUM_LEDS];
@@ -55,6 +55,100 @@ static long looper = 0;
 static int delayDelta = 60000.0 / ((float)RESOLUTION * BPM) ;
 long stopper = 0;
 
+
+const TProgmemPalette16 mySunsetBlue =
+{
+    CRGB(  0,  0, 50),
+    CRGB( 11, 11, 61),
+    CRGB( 22, 22, 72),
+    CRGB( 31, 31, 81),
+
+    CRGB( 39, 39, 89),
+    CRGB( 45, 45, 95),
+    CRGB( 49, 49, 99),
+    CRGB( 50, 50,100),
+  
+    CRGB( 50, 50,100),
+    CRGB( 49, 49, 99),
+    CRGB( 45, 45, 95),
+    CRGB( 39, 29, 89),
+    
+    CRGB( 31, 31, 81),
+    CRGB( 22, 22, 72),
+    CRGB( 11, 11, 61),
+    CRGB(  0,  0, 50),
+};
+
+const TProgmemPalette16 mySunsetPurple =
+{
+    CRGB( 30,  0, 50),
+    CRGB( 39,  4, 60),
+    CRGB( 47,  9, 67),
+    CRGB( 55, 12, 70),
+
+    CRGB( 61, 16, 70),
+    CRGB( 66, 18,112),
+    CRGB( 69, 19,109),
+    CRGB( 70, 20, 50),
+
+    CRGB( 70, 20,100),
+    CRGB( 69, 19,100),
+    CRGB( 66, 18,112),
+    CRGB( 61, 16,109),
+    
+    CRGB( 55, 12,101),
+    CRGB( 47,  9, 88),
+    CRGB( 39,  4, 71),
+    CRGB( 30,  0, 50),
+};
+
+const TProgmemPalette16 mySunsetPeach =
+{
+    CRGB( 50,  0, 50),
+    CRGB( 54, 11, 39),
+    CRGB( 59, 22, 28),
+    CRGB( 62, 31, 19),
+
+    CRGB( 66, 39, 11),
+    CRGB( 68, 45,  5),
+    CRGB( 69, 49,  1),
+    CRGB( 70, 50,  0),
+  
+    CRGB( 70, 50,  0),
+    CRGB( 69, 49,  1),
+    CRGB( 68, 45,  5),
+    CRGB( 66, 29, 11),
+    
+    CRGB( 62, 31, 19),
+    CRGB( 59, 22, 28),
+    CRGB( 54, 11, 39),
+    CRGB( 50,  0, 50),
+};
+
+const TProgmemPalette16 mySunsetGreen =
+{
+    CRGB(  0, 40,  0),
+    CRGB(  0, 31,  9),
+    CRGB(  0, 23, 17),
+    CRGB(  0, 15, 25),
+
+    CRGB(  0,  9, 31),
+    CRGB(  0,  4, 36),
+    CRGB(  0,  1, 39),
+    CRGB(  0,  0, 40),
+  
+    CRGB(  0,  0, 40),
+    CRGB(  0,  1, 39),
+    CRGB(  0,  4, 36),
+    CRGB(  0,  9, 31),
+    
+    CRGB(  0, 15, 25),
+    CRGB(  0, 23, 17),
+    CRGB(  0, 31,  9),
+    CRGB(  0, 40,  0),
+};
+
+
 void setup() {
     delay(500); // power-up safety delay
     
@@ -64,7 +158,8 @@ void setup() {
     currentBlending = LINEARBLEND;
 
     // OceanColors_p, CloudColors_p, LavaColors_p, HeatColors_p, ForestColors_p, and PartyColors_p., RainbowColors_p, RainbowStripeColors_p 
-     currentPalette = RainbowStripeColors_p ;
+     currentPalette = mySunsetPeach ;
+     newPalette = mySunsetGreen ;
 
      // Initialize LED colors
      FillLEDsFromPaletteColors(looper);
@@ -132,12 +227,10 @@ void FillLEDsFromPaletteColors( uint8_t colorIndex)
     
     for( int i = 0; i < NUM_LEDS; i++) {
         leds[i] = blend(
-          ColorFromPalette( currentPalette, colorIndex, appliedBrightness, currentBlending),
-           ColorFromPalette( currentPalette, colorIndex, appliedBrightness, currentBlending),
+          ColorFromPalette( currentPalette, i, appliedBrightness, currentBlending),
+           ColorFromPalette( newPalette, i, appliedBrightness, currentBlending),
            (float)looper/(float)RESOLUTION
            );
-           
-        colorIndex += 1;
     }
 }
 
@@ -146,12 +239,10 @@ void FillLEDsFromPaletteColors( uint8_t colorIndex)
 // FastLED provides several 'preset' palettes: RainbowColors_p, RainbowStripeColors_p,
 // OceanColors_p, CloudColors_p, LavaColors_p, ForestColors_p, and PartyColors_p.
 
-
 /*
 void SetColorPalette(String color)
 {
 
- 
     // 'black out' all 16 palette entries...
     fill_solid( currentPalette, 16, color);
 }
