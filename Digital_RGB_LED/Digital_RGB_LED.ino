@@ -35,11 +35,11 @@ const unsigned int MAX_DIST = 3300;
 // Wave per miniute. 1 means it takes 60 sec to flow through each LEDs
 // Max BPM is ~10 for 300 LEDS (RESOLUTION=1) 
 // Max BPM*RESOLUTION is ~3 for 300 LEDS (RESOLUTION>1) 
-#define BPM 0.5
+#define BPM 0.1
 
 // Advised max (sub) RESOLUTION is ~3, Min 1, Default 1
 // *** Set to 1 to reach FAST animation
-#define RESOLUTION 5
+#define RESOLUTION 100
 
 // Scales the wave's length. >1.0 means overlays the stripe. Default: 1.0
 #define WAVE_LENGTH_SCALE 1.00
@@ -52,14 +52,14 @@ static bool reversed = true;
 
 
 // Determine delay time based on BPM and RESOLUTION
-static int delayDelta = 60000.0 / ((float)NUM_LEDS * (float)RESOLUTION * BPM) ;
+static int delayDelta = 60000.0 / ((float)RESOLUTION * BPM) ;
 long stopper = 0;
 
 void setup() {
     delay( 500 ); // power-up safety delay
     
-    FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip ); // TypicalLEDStrip
-    FastLED.setBrightness(  appliedBrightness );
+    FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
+    FastLED.setBrightness(appliedBrightness);
     
     currentBlending = LINEARBLEND;
 
@@ -198,47 +198,17 @@ void measure() {
   
 }
 
-
-void FillLEDsFromPaletteColors(long colorShift, bool shiftOnly)
+void FillLEDsFromPaletteColors( uint8_t colorIndex)
 {
+    
     for( int i = 0; i < NUM_LEDS; i++) {
-      int index = i;
-      if (reversed) {
-        index = NUM_LEDS - i -1;
-      }
-
-      // Speed up calculation when possible by shifting the leds
-      if (shiftOnly && RESOLUTION == 1) {
-        if (reversed) {
-          if (index != 0) {
-            leds[index] = leds[index - 1];
-            continue;
-          }
-        } else {
-          if (index != NUM_LEDS-1) {
-             leds[index] = leds[index + 1];
-             continue;
-          }
-        }
-      }
-      
-      long colorIndex = ((long) i * (long) 256)/ (float) WAVE_LENGTH_SCALE / ((long)NUM_LEDS) + colorShift / (long) RESOLUTION;
-     
-      if (currentBlending == NOBLEND || RESOLUTION == 1)
-      {
-         leds[index] = ColorFromPalette( currentPalette, colorIndex + colorShift / (long) RESOLUTION, appliedBrightness, currentBlending);
-      } 
-      else {
-        // Apply smoothing
-         leds[index] = blend(
-            ColorFromPalette( currentPalette, colorIndex, appliedBrightness, currentBlending),
-            ColorFromPalette( currentPalette, colorIndex + 1, appliedBrightness, currentBlending),
-            (float)(colorShift % RESOLUTION)*255.0/(float)RESOLUTION);
-      }
+        leds[i] = blend(
+          ColorFromPalette( currentPalette, colorIndex, appliedBrightness, currentBlending),
+           ColorFromPalette( currentPalette, colorIndex, appliedBrightness, currentBlending),
+           
+        colorIndex += 1;
     }
-//     Serial.println(colorShift / (long) RESOLUTION);
 }
-
 
 // There are several different palettes of colors demonstrated here.
 //
