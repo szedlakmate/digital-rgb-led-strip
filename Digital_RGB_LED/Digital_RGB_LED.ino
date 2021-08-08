@@ -39,7 +39,7 @@ const unsigned int MAX_DIST = 3300;
 
 // Advised max (sub) RESOLUTION is ~3, Min 1, Default 1
 // *** Set to 1 to reach FAST animation
-#define RESOLUTION 100
+#define RESOLUTION 2400   // Ultrasound needs: BPM * RESOLUTION >= 240
 
 // Scales the wave's length. >1.0 means overlays the stripe. Default: 1.0
 #define WAVE_LENGTH_SCALE 1.00
@@ -47,7 +47,7 @@ const unsigned int MAX_DIST = 3300;
 
 CRGBPalette16 currentPalette;
 TBlendType    currentBlending;
-static long startIndex = 0;
+static long looper = 0;
 static bool reversed = true;
 
 
@@ -56,7 +56,7 @@ static int delayDelta = 60000.0 / ((float)RESOLUTION * BPM) ;
 long stopper = 0;
 
 void setup() {
-    delay( 500 ); // power-up safety delay
+    delay(500); // power-up safety delay
     
     FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
     FastLED.setBrightness(appliedBrightness);
@@ -67,7 +67,7 @@ void setup() {
      currentPalette = RainbowStripeColors_p ;
 
      // Initialize LED colors
-     FillLEDsFromPaletteColors(startIndex, false);
+     FillLEDsFromPaletteColors(looper, false);
 
 
     // Ultrasound stuff ***********
@@ -90,7 +90,7 @@ void setup() {
 
 void loop()
 {
-    FillLEDsFromPaletteColors(startIndex, true);
+    FillLEDsFromPaletteColors(looper, true);
 
     // SetColorPalette(CRGB::Red);
 
@@ -105,7 +105,8 @@ void loop()
   
     
     FastLED.show();
-    startIndex = startIndex + 1;
+    looper = (looper + 1) % RESOLUTION;
+    
 
     // Determine accurate sleep time
     long timer = millis();
@@ -113,89 +114,6 @@ void loop()
 //    Serial.print("  delayDelta - timer + stopper: ");
 //    Serial.println(delayDelta - timer + stopper);
     stopper = timer;
-}
-
-// Ultrasonic mess *****************************
-void reset(){
-  // If too many highly different measurement were recorded, 
-  // the program drops all saved data and reset the variables.
-  for (int thisReading = 0; thisReading < numReadings; thisReading++) {
-    readings[thisReading] = 0; 
-  }
-  count = 0;
-  readIndex = 0;
-  sum = 0;
-  average = 0;
-  dropcount = 0;
-  prevavg = 0;
-}
-
-
-void measure() {
-   unsigned long t1;
-  unsigned long t2;
-  unsigned long pulse_width;
-  float mm;
-
-  // Hold the trigger pin high for at least 10 us
-  digitalWrite(TRIG_PIN, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(TRIG_PIN, LOW);
-
-  // Wait for pulse on echo pin
-  while ( digitalRead(ECHO_PIN) == 0 );
-
-  // Measure how long the echo pin was held high (pulse width)
-  // Note: the micros() counter will overflow after ~70 min
-  t1 = micros();
-  while ( digitalRead(ECHO_PIN) == 1);
-  t2 = micros();
-  pulse_width = t2 - t1;
-
-                   // Calculate distance in millimeters. The constants
-                   // are found in the datasheet, and calculated from the assumed speed 
-                   // of sound in air at sea level (~340 m/s).
-                   // mm = round(pulse_width / 0.580)/10; // Original calculation method
-  mm = round(pulse_width *1.716+6.76)/10; // Calibrated method
-  // Print out results
-  if ( pulse_width > MAX_DIST ) {
-//     Serial.println("Out of range");
-  } else {
-      if ((count < numReadings) or ((mm > average - threshold) and (mm < average + threshold))) {
-        if (count < numReadings) {
-          count += 1;
-          } 
-         // drop old data
-        sum = sum - readings[readIndex];
-        // add new data
-        readings[readIndex] = mm;
-        sum = sum + readings[readIndex];
-        readIndex = readIndex + 1;
-        if (readIndex >= numReadings) {
-          // ...wrap around to the beginning:
-          readIndex = 0;
-          if (dropcount > 0) {
-            dropcount -= 1;
-          }
-        }
-        // Calcualting the average
-        average = sum / numReadings;
-        if ((count == numReadings) and (average < prevavg + threshold)
-        and (average > prevavg - threshold)) {
-//          Serial.print(average);               
-//          Serial.println(",");
-        }
-        prevavg = average;
-      } else {
-        if (count == numReadings){
-          dropcount += 1;
-          if (dropcount == 3){
-            reset();
-          }
-        }
-      }
-  }
-  
 }
 
 void FillLEDsFromPaletteColors( uint8_t colorIndex)
@@ -283,25 +201,84 @@ const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM =
 };
 
 
+// Ultrasonic mess *****************************
+void reset(){
+  // If too many highly different measurement were recorded, 
+  // the program drops all saved data and reset the variables.
+  for (int thisReading = 0; thisReading < numReadings; thisReading++) {
+    readings[thisReading] = 0; 
+  }
+  count = 0;
+  readIndex = 0;
+  sum = 0;
+  average = 0;
+  dropcount = 0;
+  prevavg = 0;
+}
 
-// Additionl notes on FastLED compact palettes:
-//
-// Normally, in computer graphics, the palette (or "color lookup table")
-// has 256 entries, each containing a specific 24-bit RGB color.  You can then
-// index into the color palette using a simple 8-bit (one byte) value.
-// A 256-entry color palette takes up 768 bytes of RAM, which on Arduino
-// is quite possibly "too many" bytes.
-//
-// FastLED does offer traditional 256-element palettes, for setups that
-// can afford the 768-byte cost in RAM.
-//
-// However, FastLED also offers a compact alternative.  FastLED offers
-// palettes that store 16 distinct entries, but can be accessed AS IF
-// they actually have 256 entries; this is accomplished by interpolating
-// between the 16 explicit entries to create fifteen intermediate palette
-// entries between each pair.
-//
-// So for example, if you set the first two explicit entries of a compact 
-// palette to Green (0,255,0) and Blue (0,0,255), and then retrieved 
-// the first sixteen entries from the virtual palette (of 256), you'd get
-// Green, followed by a smooth gradient from green-to-blue, and then Blue.
+
+void measure() {
+   unsigned long t1;
+  unsigned long t2;
+  unsigned long pulse_width;
+  float mm;
+
+  // Hold the trigger pin high for at least 10 us
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+
+  // Wait for pulse on echo pin
+  while ( digitalRead(ECHO_PIN) == 0 );
+
+  // Measure how long the echo pin was held high (pulse width)
+  // Note: the micros() counter will overflow after ~70 min
+  t1 = micros();
+  while ( digitalRead(ECHO_PIN) == 1);
+  t2 = micros();
+  pulse_width = t2 - t1;
+
+                   // Calculate distance in millimeters. The constants
+                   // are found in the datasheet, and calculated from the assumed speed 
+                   // of sound in air at sea level (~340 m/s).
+                   // mm = round(pulse_width / 0.580)/10; // Original calculation method
+  mm = round(pulse_width *1.716+6.76)/10; // Calibrated method
+  // Print out results
+  if ( pulse_width > MAX_DIST ) {
+//     Serial.println("Out of range");
+  } else {
+      if ((count < numReadings) or ((mm > average - threshold) and (mm < average + threshold))) {
+        if (count < numReadings) {
+          count += 1;
+          } 
+         // drop old data
+        sum = sum - readings[readIndex];
+        // add new data
+        readings[readIndex] = mm;
+        sum = sum + readings[readIndex];
+        readIndex = readIndex + 1;
+        if (readIndex >= numReadings) {
+          // ...wrap around to the beginning:
+          readIndex = 0;
+          if (dropcount > 0) {
+            dropcount -= 1;
+          }
+        }
+        // Calcualting the average
+        average = sum / numReadings;
+        if ((count == numReadings) and (average < prevavg + threshold)
+        and (average > prevavg - threshold)) {
+//          Serial.print(average);               
+//          Serial.println(",");
+        }
+        prevavg = average;
+      } else {
+        if (count == numReadings){
+          dropcount += 1;
+          if (dropcount == 3){
+            reset();
+          }
+        }
+      }
+  }
+}
