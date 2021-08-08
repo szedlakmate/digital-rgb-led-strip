@@ -46,10 +46,10 @@ const unsigned int MAX_DIST = 3300;
 
 
 CRGBPalette16 currentPalette;
+CRGBPalette16 newPalette;
 TBlendType    currentBlending;
-static long looper = 0;
-static bool reversed = true;
 
+static long looper = 0;
 
 // Determine delay time based on BPM and RESOLUTION
 static int delayDelta = 60000.0 / ((float)RESOLUTION * BPM) ;
@@ -67,7 +67,7 @@ void setup() {
      currentPalette = RainbowStripeColors_p ;
 
      // Initialize LED colors
-     FillLEDsFromPaletteColors(looper, false);
+     FillLEDsFromPaletteColors(looper);
 
 
     // Ultrasound stuff ***********
@@ -90,7 +90,7 @@ void setup() {
 
 void loop()
 {
-    FillLEDsFromPaletteColors(looper, true);
+    FillLEDsFromPaletteColors(looper);
 
     // SetColorPalette(CRGB::Red);
 
@@ -99,13 +99,16 @@ void loop()
     Serial.println(average);
     if (average > 0) {
       // Smoothen brightness change
-      appliedBrightness = (appliedBrightness + min(  average, 250))/2;
+      appliedBrightness = (appliedBrightness + min(average, 250))/2;
       FastLED.setBrightness( appliedBrightness );
     }
-  
     
     FastLED.show();
-    looper = (looper + 1) % RESOLUTION;
+    looper = looper + 1;
+
+    if (looper > RESOLUTION) {
+      switchPalettes();
+    }
     
 
     // Determine accurate sleep time
@@ -116,6 +119,14 @@ void loop()
     stopper = timer;
 }
 
+void switchPalettes() {
+  CRGBPalette16 tempPalette;
+  tempPalette = currentPalette;
+  currentPalette = newPalette;
+  newPalette = tempPalette;
+  looper = 0;
+}
+
 void FillLEDsFromPaletteColors( uint8_t colorIndex)
 {
     
@@ -123,6 +134,8 @@ void FillLEDsFromPaletteColors( uint8_t colorIndex)
         leds[i] = blend(
           ColorFromPalette( currentPalette, colorIndex, appliedBrightness, currentBlending),
            ColorFromPalette( currentPalette, colorIndex, appliedBrightness, currentBlending),
+           (float)looper/(float)RESOLUTION
+           );
            
         colorIndex += 1;
     }
