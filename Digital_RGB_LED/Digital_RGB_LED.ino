@@ -1,8 +1,9 @@
 #include <FastLED.h>
 
-#define LED_PIN     53
-#define NUM_LEDS    300
-#define BRIGHTNESS  100 // max: 250
+#define LED_PIN     53    // arduino connection
+#define NUM_LEDS    300   // total num of leds on the full strip
+#define SECTIONS    4     // the num of sections the strip was broken
+#define BRIGHTNESS  100   // max: 250
 #define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB
 CRGB leds[NUM_LEDS];
@@ -42,24 +43,6 @@ const unsigned int MAX_DIST = 3300;
 
 // Scales the wave's length. >1.0 means overlays the stripe. Default: 1.0
 #define WAVE_LENGTH_SCALE 1.00
-
-// This example shows several ways to set up and use 'palettes' of colors
-// with FastLED.
-//
-// These compact palettes provide an easy way to re-colorize your
-// animation on the fly, quickly, easily, and with low overhead.
-//
-// USING palettes is MUCH simpler in practice than in theory, so first just
-// run this sketch, and watch the pretty lights as you then read through
-// the code.  Although this sketch has eight (or more) different color schemes,
-// the entire sketch compiles down to about 6.5K on AVR.
-//
-// FastLED provides a few pre-configured color palettes, and makes it
-// extremely easy to make up your own color schemes with palettes.
-//
-// Some notes on the more abstract 'theory and practice' of
-// FastLED compact palettes are at the bottom of this file.
-
 
 
 CRGBPalette16 currentPalette;
