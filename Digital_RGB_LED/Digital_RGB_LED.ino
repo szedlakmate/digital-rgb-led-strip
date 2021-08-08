@@ -2,7 +2,7 @@
 
 #define LED_PIN     53    // arduino connection
 #define NUM_LEDS    300   // total num of leds on the full strip
-#define SECTIONS    4     // the num of sections the strip was broken
+#define SECTIONS    4.0   // the num of sections the strip was broken
 #define BRIGHTNESS  250   // max: 250
 #define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB
@@ -42,7 +42,7 @@ const unsigned int MAX_DIST = 3300;
 #define RESOLUTION 100  // Ultrasound needs: BPM * RESOLUTION >= 240
 
 // Scales the wave's length. >1.0 means overlays the stripe. Default: 1.0
-#define WAVE_LENGTH_SCALE 1.00
+#define WAVE_LENGTH_SCALE 1.0 / SECTIONS
 
 
 CRGBPalette16 currentPalette;
@@ -56,7 +56,7 @@ static int delayDelta = 60000.0 / ((float)RESOLUTION * BPM) ;
 long stopper = 0;
 
 
-const TProgmemPalette16 mySunsetBlue =
+const TProgmemPalette16 mySunsetBlue PROGMEM =
 {
     CRGB(  0,  0, 50),
     CRGB( 11, 11, 61),
@@ -79,7 +79,7 @@ const TProgmemPalette16 mySunsetBlue =
     CRGB(  0,  0, 50),
 };
 
-const TProgmemPalette16 mySunsetPurple =
+const TProgmemPalette16 mySunsetPurple PROGMEM =
 {
     CRGB( 30,  0, 50),
     CRGB( 39,  4, 60),
@@ -102,10 +102,10 @@ const TProgmemPalette16 mySunsetPurple =
     CRGB( 30,  0, 50),
 };
 
-const TProgmemPalette16 mySunsetPeach =
+const TProgmemPalette16 mySunsetPeach PROGMEM =
 {
-    CRGB(115, 28,148),
-    CRGB(137, 43,136),
+    0x731c94,
+    0x892b88,
     CRGB(159, 57,125),
     CRGB(178, 69,115),
 
@@ -121,11 +121,11 @@ const TProgmemPalette16 mySunsetPeach =
     
     CRGB(178, 69,115),
     CRGB(159, 57,125),
-    CRGB(137, 43,136),
-    CRGB(115, 28,148),
+    0x892b88,
+    0x731c94,
 };
 
-const TProgmemPalette16 mySunsetGreen =
+const TProgmemPalette16 mySunsetGreen PROGMEM =
 {
     CRGB(  0, 40,  0),
     CRGB(  0, 31,  9),
@@ -146,6 +146,29 @@ const TProgmemPalette16 mySunsetGreen =
     CRGB(  0, 23, 17),
     CRGB(  0, 31,  9),
     CRGB(  0, 40,  0),
+};
+
+const TProgmemPalette16 DebugPalette PROGMEM =
+{
+   0x0000ff,
+   0x000000,
+   0x000000,
+   0x000000,
+
+   0x00ff00,
+   0x000000,
+   0x000000,
+   0x000000,
+
+   0xff0000,
+   0x000000,
+   0x000000,
+   0x000000,
+
+   0xffffff,
+   0x000000,
+   0x000000,
+   0x000000,
 };
 
 
@@ -160,8 +183,13 @@ void setup() {
     // OceanColors_p, CloudColors_p, LavaColors_p, HeatColors_p, ForestColors_p, and PartyColors_p., RainbowColors_p, RainbowStripeColors_p 
 
     // mySunsetBlue, mySunsetPurple, mySunsetPeach, mySunsetGreen
-     currentPalette = mySunsetPeach ;
-     newPalette = mySunsetGreen ;
+//     currentPalette = mySunsetPeach;
+      currentPalette = DebugPalette;
+//     newPalette = RainbowColors_p;
+      newPalette = DebugPalette;
+//     fill_solid( newPalette, 16, CRGB::Red);
+
+//      newPalette =  currentPalette;
 
      // Initialize LED colors
      FillLEDsFromPaletteColors(looper);
@@ -180,7 +208,7 @@ void setup() {
     // We'll use the serial monitor to view the sensor output
     Serial.begin(9600);
     for (int thisReading = 0; thisReading < numReadings; thisReading++) {
-      readings[thisReading] = 0;  
+    readings[thisReading] = 0;  
     }
 }
 
@@ -201,9 +229,7 @@ void loop()
     }
     
     FastLED.show();
-    looper = looper + 1;
-
-//    looper = looper;
+    looper += 1;
 
     if (looper > RESOLUTION) {
       switchPalettes();
@@ -228,14 +254,17 @@ void switchPalettes() {
 
 void FillLEDsFromPaletteColors( uint8_t colorIndex)
 {
-    
-    for( int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = blend(
-          ColorFromPalette( currentPalette, i, appliedBrightness, currentBlending),
-          ColorFromPalette( newPalette, i, appliedBrightness, currentBlending),
-           (float)looper*255.0/(float)RESOLUTION  // 0 - 255
-           );
-    }
+//    for( int i = 0; i < NUM_LEDS; i++) {
+//        leds[i] = blend(
+//          ColorFromPalette(currentPalette, (i)*255/(NUM_LEDS*WAVE_LENGTH_SCALE), appliedBrightness, currentBlending),
+//          ColorFromPalette(newPalette,     (i)*255/(NUM_LEDS*WAVE_LENGTH_SCALE), appliedBrightness, currentBlending),
+//          (float)looper*255.0/(float)RESOLUTION  // 0 - 255
+//           );
+//    }
+
+        for( int i = 0; i < NUM_LEDS; i++) {
+            leds[i] = ColorFromPalette(currentPalette, (i)*255/(NUM_LEDS*WAVE_LENGTH_SCALE), appliedBrightness, currentBlending);
+        }
 }
 
 // There are several different palettes of colors demonstrated here.
@@ -266,6 +295,8 @@ void SetupBlackAndWhiteStripedPalette()
     currentPalette[12] = CRGB::White;
     
 }
+
+
 
 // This function sets up a palette of purple and green stripes.
 void SetupPurpleAndGreenPalette()
