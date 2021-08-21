@@ -42,7 +42,7 @@ const unsigned int MAX_DIST = 3300;
 #define RESOLUTION 100  // Ultrasound needs: BPM * RESOLUTION >= 240
 
 // Scales the wave's length. >1.0 means overlays the stripe. Default: 1.0
-#define WAVE_LENGTH_SCALE 1.0 / SECTIONS
+static int WAVE_LENGTH = (NUM_LEDS / SECTIONS);
 
 
 CRGBPalette16 currentPalette;
@@ -186,7 +186,7 @@ void setup() {
 //     currentPalette = mySunsetPeach;
       currentPalette = DebugPalette;
 //     newPalette = RainbowColors_p;
-      newPalette = RainbowColors_p;
+      newPalette = DebugPalette;
 //     fill_solid( newPalette, 16, CRGB::Red);
 
 //      newPalette =  currentPalette;
@@ -221,7 +221,7 @@ void loop()
 
     // Ultrasound measurement
     measure();
-    Serial.println(average);
+//    Serial.println(average);
     if (average > 0) {
       // Smoothen brightness change
       appliedBrightness = (appliedBrightness + min(average, 250))/2;
@@ -254,17 +254,26 @@ void switchPalettes() {
 
 void FillLEDsFromPaletteColors( uint8_t colorIndex)
 {
-    for( int i = 0; i < NUM_LEDS; i++) {
-        leds[i] = blend(
-          ColorFromPalette(currentPalette, (i)*255/(NUM_LEDS*WAVE_LENGTH_SCALE), appliedBrightness, currentBlending),
-          ColorFromPalette(newPalette,     (i)*255/(NUM_LEDS*WAVE_LENGTH_SCALE), appliedBrightness, currentBlending),
-          (float)looper*255.0/(float)RESOLUTION  // 0 - 255
-           );
-    }
+//    for( int i = 0; i < NUM_LEDS; i++) {
+//        leds[i] = blend(
+//          ColorFromPalette(currentPalette, (i)*255/(NUM_LEDS*WAVE_LENGTH), appliedBrightness, currentBlending),
+//          ColorFromPalette(newPalette,     (i)*255/(NUM_LEDS*WAVE_LENGTH), appliedBrightness, currentBlending),
+//          (float)looper*255.0/(float)RESOLUTION  // 0 - 255
+//           );
+//    }
 
-//        for( int i = 0; i < NUM_LEDS; i++) {
-//            leds[i] = ColorFromPalette(currentPalette, (i)*255/(NUM_LEDS*WAVE_LENGTH_SCALE), appliedBrightness, currentBlending);
+        for (int sectionIndex = 0; sectionIndex < SECTIONS; sectionIndex++) {
+           for( int i = 0; i < WAVE_LENGTH; i++) {
+            leds[i+sectionIndex*WAVE_LENGTH] = ColorFromPalette(currentPalette, (i)*255/WAVE_LENGTH, appliedBrightness, currentBlending);
+          }
+        }
+
+//         for( int i = 0; i < NUM_LEDS; i++) {
+//         
+//            leds[i+sectionIndex*WAVE_LENGTH] = ColorFromPalette(currentPalette, i, appliedBrightness, currentBlending);
+//          }
 //        }
+//            leds[i] = ColorFromPalette(currentPalette, (i)*255/(NUM_LEDS*WAVE_LENGTH), appliedBrightness, currentBlending);
 }
 
 // There are several different palettes of colors demonstrated here.
