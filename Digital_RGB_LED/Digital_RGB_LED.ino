@@ -183,9 +183,9 @@ void setup() {
     // OceanColors_p, CloudColors_p, LavaColors_p, HeatColors_p, ForestColors_p, and PartyColors_p., RainbowColors_p, RainbowStripeColors_p 
 
     // mySunsetBlue, mySunsetPurple, mySunsetPeach, mySunsetGreen
-     currentPalette = mySunsetPeach;
+     currentPalette = RainbowColors_p;
 //      currentPalette = DebugPalette;
-     newPalette = mySunsetPeach;
+     newPalette = RainbowStripeColors_p;
 //      newPalette = DebugPalette;
 //     fill_solid( newPalette, 16, CRGB::Red);
 
@@ -254,27 +254,19 @@ void switchPalettes() {
 
 void FillLEDsFromPaletteColors( uint8_t colorIndex)
 {
-//    for( int i = 0; i < NUM_LEDS; i++) {
-//        leds[i] = blend(
-//          ColorFromPalette(currentPalette, (i)*255/(NUM_LEDS*WAVE_LENGTH), appliedBrightness, currentBlending),
-//          ColorFromPalette(newPalette,     (i)*255/(NUM_LEDS*WAVE_LENGTH), appliedBrightness, currentBlending),
-//          (float)looper*255.0/(float)RESOLUTION  // 0 - 255
-//           );
-//    }
-
         for (int sectionIndex = 0; sectionIndex < SECTIONS; sectionIndex++) {
            for( int i = 0; i < WAVE_LENGTH; i++) {
-            leds[i+sectionIndex*WAVE_LENGTH] = ColorFromPalette(currentPalette, (i)*255/WAVE_LENGTH, appliedBrightness, currentBlending);
+
+              leds[i+sectionIndex*WAVE_LENGTH] =  blend(
+                  ColorFromPalette(currentPalette, (i)*255/WAVE_LENGTH, appliedBrightness, currentBlending),
+                  ColorFromPalette(newPalette,     (i)*255/WAVE_LENGTH, appliedBrightness, currentBlending),
+                  (float)looper*255.0/(float)RESOLUTION  // 0 - 255
+              );
+              
+//            leds[i+sectionIndex*WAVE_LENGTH] = ColorFromPalette(currentPalette, (i)*255/WAVE_LENGTH, appliedBrightness, currentBlending);
           }
         }
-
-//         for( int i = 0; i < NUM_LEDS; i++) {
-//         
-//            leds[i+sectionIndex*WAVE_LENGTH] = ColorFromPalette(currentPalette, i, appliedBrightness, currentBlending);
-//          }
-//        }
-//            leds[i] = ColorFromPalette(currentPalette, (i)*255/(NUM_LEDS*WAVE_LENGTH), appliedBrightness, currentBlending);
-}
+};
 
 // There are several different palettes of colors demonstrated here.
 //
