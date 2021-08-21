@@ -186,7 +186,7 @@ void setup() {
 //     currentPalette = mySunsetPeach;
       currentPalette = DebugPalette;
 //     newPalette = RainbowColors_p;
-      newPalette = DebugPalette;
+      newPalette = RainbowColors_p;
 //     fill_solid( newPalette, 16, CRGB::Red);
 
 //      newPalette =  currentPalette;
@@ -254,17 +254,17 @@ void switchPalettes() {
 
 void FillLEDsFromPaletteColors( uint8_t colorIndex)
 {
-//    for( int i = 0; i < NUM_LEDS; i++) {
-//        leds[i] = blend(
-//          ColorFromPalette(currentPalette, (i)*255/(NUM_LEDS*WAVE_LENGTH_SCALE), appliedBrightness, currentBlending),
-//          ColorFromPalette(newPalette,     (i)*255/(NUM_LEDS*WAVE_LENGTH_SCALE), appliedBrightness, currentBlending),
-//          (float)looper*255.0/(float)RESOLUTION  // 0 - 255
-//           );
-//    }
+    for( int i = 0; i < NUM_LEDS; i++) {
+        leds[i] = blend(
+          ColorFromPalette(currentPalette, (i)*255/(NUM_LEDS*WAVE_LENGTH_SCALE), appliedBrightness, currentBlending),
+          ColorFromPalette(newPalette,     (i)*255/(NUM_LEDS*WAVE_LENGTH_SCALE), appliedBrightness, currentBlending),
+          (float)looper*255.0/(float)RESOLUTION  // 0 - 255
+           );
+    }
 
-        for( int i = 0; i < NUM_LEDS; i++) {
-            leds[i] = ColorFromPalette(currentPalette, (i)*255/(NUM_LEDS*WAVE_LENGTH_SCALE), appliedBrightness, currentBlending);
-        }
+//        for( int i = 0; i < NUM_LEDS; i++) {
+//            leds[i] = ColorFromPalette(currentPalette, (i)*255/(NUM_LEDS*WAVE_LENGTH_SCALE), appliedBrightness, currentBlending);
+//        }
 }
 
 // There are several different palettes of colors demonstrated here.
