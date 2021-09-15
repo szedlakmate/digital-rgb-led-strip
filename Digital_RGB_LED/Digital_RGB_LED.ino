@@ -104,25 +104,22 @@ const TProgmemPalette16 mySunsetPurple PROGMEM =
 
 const TProgmemPalette16 mySunsetPeach PROGMEM =
 {
-    0x721c93,
-    0x892a87,
-    0x9f387c,
-    0xb24572,
-  
-    0xc24f6a,
-    0xce5763,
-    0xd65c5f,
-    0xd85e5e,
-    
-    0xd85e5e,
-    0xd65c5f,
-    0xce5763,
-    0xc24f6a,
-
-    0xb24572,
-    0x9f387c,
-    0x892a87,
-    0x721c93,
+0xDD0040,
+0xDB1431,
+0xDA2824,
+0xD93A18,
+0xD9490D,
+0xD85406,
+0xD85B01,
+0xD85E00,
+0xD85E00,
+0xD85B01,
+0xD85406,
+0xD9490D,
+0xD93A18,
+0xDA2824,
+0xDB1431,
+0xDD0040,
 };
 
 const TProgmemPalette16 mySunsetGreen PROGMEM =
@@ -183,13 +180,10 @@ void setup() {
     // OceanColors_p, CloudColors_p, LavaColors_p, HeatColors_p, ForestColors_p, and PartyColors_p., RainbowColors_p, RainbowStripeColors_p 
 
     // mySunsetBlue, mySunsetPurple, mySunsetPeach, mySunsetGreen
-     currentPalette = RainbowColors_p;
-//      currentPalette = DebugPalette;
-     newPalette = RainbowStripeColors_p;
-//      newPalette = DebugPalette;
-//     fill_solid( newPalette, 16, CRGB::Red);
-
-//      newPalette =  currentPalette;
+ 
+     currentPalette = mySunsetPeach;
+//     newPalette = RainbowStripeColors_p;
+newPalette = currentPalette;
 
      // Initialize LED colors
      FillLEDsFromPaletteColors(looper);
