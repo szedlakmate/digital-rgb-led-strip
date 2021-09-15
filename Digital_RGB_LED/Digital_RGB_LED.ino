@@ -3,7 +3,7 @@
 #define LED_PIN     53    // arduino connection
 #define NUM_LEDS    300   // total num of leds on the full strip
 #define SECTIONS    4.0   // the num of sections the strip was broken
-#define BRIGHTNESS  250   // max: 250
+#define BRIGHTNESS  100   // max: 250
 #define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB
 CRGB leds[NUM_LEDS];
