@@ -44,6 +44,8 @@ const unsigned int MAX_DIST = 3300;
 // Scales the wave's length. >1.0 means overlays the stripe. Default: 1.0
 static int WAVE_LENGTH = (NUM_LEDS / SECTIONS);
 
+int cycle = -1;
+
 
 CRGBPalette16 currentPalette;
 CRGBPalette16 newPalette;
@@ -58,48 +60,42 @@ long stopper = 0;
 
 const TProgmemPalette16 mySunsetBlue PROGMEM =
 {
-    CRGB(  0,  0, 50),
-    CRGB( 11, 11, 61),
-    CRGB( 22, 22, 72),
-    CRGB( 31, 31, 81),
-
-    CRGB( 39, 39, 89),
-    CRGB( 45, 45, 95),
-    CRGB( 49, 49, 99),
-    CRGB( 50, 50,100),
-  
-    CRGB( 50, 50,100),
-    CRGB( 49, 49, 99),
-    CRGB( 45, 45, 95),
-    CRGB( 39, 29, 89),
-    
-    CRGB( 31, 31, 81),
-    CRGB( 22, 22, 72),
-    CRGB( 11, 11, 61),
-    CRGB(  0,  0, 50),
+0x000032,
+0x05052E,
+0x0A0A2B,
+0x0F0F28,
+0x131326,
+0x161624,
+0x181823,
+0x191923,
+0x191923,
+0x181823,
+0x161624,
+0x131326,
+0x0F0F28,
+0x0A0A2B,
+0x05052E,
+0x000032,
 };
 
 const TProgmemPalette16 mySunsetPurple PROGMEM =
 {
-    CRGB( 30,  0, 50),
-    CRGB( 39,  4, 60),
-    CRGB( 47,  9, 67),
-    CRGB( 55, 12, 70),
-
-    CRGB( 61, 16, 70),
-    CRGB( 66, 18,112),
-    CRGB( 69, 19,109),
-    CRGB( 70, 20, 50),
-
-    CRGB( 70, 20,100),
-    CRGB( 69, 19,100),
-    CRGB( 66, 18,112),
-    CRGB( 61, 16,109),
-    
-    CRGB( 55, 12,101),
-    CRGB( 47,  9, 88),
-    CRGB( 39,  4, 71),
-    CRGB( 30,  0, 50),
+0x000096,
+0x280D91,
+0x4E1A8D,
+0x702589,
+0x8C2E86,
+0xA23683,
+0xAF3A82,
+0xB43C82,
+0xB43C82,
+0xAF3A82,
+0xA23683,
+0x8C2E86,
+0x702589,
+0x4E1A8D,
+0x280D91,
+0x000096,
 };
 
 const TProgmemPalette16 mySunsetPeach PROGMEM =
@@ -124,48 +120,22 @@ const TProgmemPalette16 mySunsetPeach PROGMEM =
 
 const TProgmemPalette16 mySunsetGreen PROGMEM =
 {
-    CRGB(  0, 40,  0),
-    CRGB(  0, 31,  9),
-    CRGB(  0, 23, 17),
-    CRGB(  0, 15, 25),
-
-    CRGB(  0,  9, 31),
-    CRGB(  0,  4, 36),
-    CRGB(  0,  1, 39),
-    CRGB(  0,  0, 40),
-  
-    CRGB(  0,  0, 40),
-    CRGB(  0,  1, 39),
-    CRGB(  0,  4, 36),
-    CRGB(  0,  9, 31),
-    
-    CRGB(  0, 15, 25),
-    CRGB(  0, 23, 17),
-    CRGB(  0, 31,  9),
-    CRGB(  0, 40,  0),
-};
-
-const TProgmemPalette16 DebugPalette PROGMEM =
-{
-   0x0000ff,
-   0x000000,
-   0x000000,
-   0x000000,
-
-   0x00ff00,
-   0x000000,
-   0x000000,
-   0x000000,
-
-   0xff0000,
-   0x000000,
-   0x000000,
-   0x000000,
-
-   0xffffff,
-   0x000000,
-   0x000000,
-   0x000000,
+0x005000,
+0x003E0A,
+0x002D14,
+0x001E1D,
+0x001125,
+0x00072B,
+0x00022E,
+0x000030,
+0x000030,
+0x00022E,
+0x00072B,
+0x001125,
+0x001E1D,
+0x002D14,
+0x003E0A,
+0x005000,
 };
 
 
@@ -180,14 +150,11 @@ void setup() {
     // OceanColors_p, CloudColors_p, LavaColors_p, HeatColors_p, ForestColors_p, and PartyColors_p., RainbowColors_p, RainbowStripeColors_p 
 
     // mySunsetBlue, mySunsetPurple, mySunsetPeach, mySunsetGreen
- 
-     currentPalette = mySunsetPeach;
-//     newPalette = RainbowStripeColors_p;
-newPalette = currentPalette;
+     newPalette = mySunsetPeach;
+     switchPalettes();
 
      // Initialize LED colors
      FillLEDsFromPaletteColors(looper);
-
 
     // Ultrasound stuff ***********
    
@@ -210,9 +177,7 @@ newPalette = currentPalette;
 void loop()
 {
     FillLEDsFromPaletteColors(looper);
-
-    // SetColorPalette(CRGB::Red);
-
+    
     // Ultrasound measurement
     measure();
 //    Serial.println(average);
@@ -239,10 +204,20 @@ void loop()
 }
 
 void switchPalettes() {
-  CRGBPalette16 tempPalette;
-  tempPalette = currentPalette;
   currentPalette = newPalette;
-  newPalette = tempPalette;
+  cycle = (cycle+1) % 4;
+
+      // mySunsetBlue, mySunsetPurple, mySunsetPeach, mySunsetGreen
+  if (cycle == 0) {
+    newPalette = mySunsetPurple;
+  } else if (cycle == 1) {
+    newPalette = mySunsetBlue;
+  } else if (cycle == 2) {
+    newPalette = mySunsetGreen;
+  } else if (cycle == 3) {
+    newPalette = mySunsetPeach;
+  } 
+ 
   looper = 0;
 }
 
