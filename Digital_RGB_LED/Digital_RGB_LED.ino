@@ -1,18 +1,18 @@
 #include <FastLED.h>
 
+// Pins
 #define LED_PIN     53    // arduino connection
+#define TRIG_PIN    7   // Ultrasound device 
+#define ECHO_PIN    8   // Ultrasound device  
+
 #define NUM_LEDS    300   // total num of leds on the full strip
 #define SECTIONS    4.0   // the num of sections the strip was broken
-#define BRIGHTNESS  100   // max: 250
+#define BRIGHTNESS  120   // max: 250
 #define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB
 CRGB leds[NUM_LEDS];
 
-// Inject ultrasound distance measurement from https://github.com/szedlakmate/arduino-ultrasound-distance-measurement
-
-// Pins
-const int TRIG_PIN = 7;   // Ultrasound device 
-const int ECHO_PIN = 8;   // Ultrasound device  
+// Ultrasound distance measurement from https://github.com/szedlakmate/arduino-ultrasound-distance-measurement
 
 const int numReadings = 3;
 const float threshold = 100;     // ?unit
@@ -58,64 +58,65 @@ static int delayDelta = 60000.0 / ((float)RESOLUTION * BPM) ;
 long stopper = 0;
 
 
-const TProgmemPalette16 mySunsetBlue PROGMEM =
+// Palettes in order
+const TProgmemPalette16 mySunsetPeach PROGMEM =
 {
-0x000032,
-0x05052E,
-0x0A0A2B,
-0x0F0F28,
-0x131326,
-0x161624,
-0x181823,
-0x191923,
-0x191923,
-0x181823,
-0x161624,
-0x131326,
-0x0F0F28,
-0x0A0A2B,
-0x05052E,
-0x000032,
+0x960096,
+0xAD1674,
+0xC32B54,
+0xD73E38,
+0xE84E20,
+0xF45A0E,
+0xFC6103,
+0xFF6400,
+0xFF6400,
+0xFC6103,
+0xF45A0E,
+0xE84E20,
+0xD73E38,
+0xC32B54,
+0xAD1674,
+0x960096,
 };
 
 const TProgmemPalette16 mySunsetPurple PROGMEM =
 {
-0x000096,
-0x280D91,
-0x4E1A8D,
-0x702589,
-0x8C2E86,
-0xA23683,
-0xAF3A82,
-0xB43C82,
-0xB43C82,
-0xAF3A82,
-0xA23683,
-0x8C2E86,
-0x702589,
-0x4E1A8D,
-0x280D91,
-0x000096,
+0x6400FF,
+0x7A06E0,
+0x8F0DC4,
+0xA212AA,
+0xB21795,
+0xBE1B85,
+0xC51D7B,
+0xC81E78,
+0xC81E78,
+0xC51D7B,
+0xBE1B85,
+0xB21795,
+0xA212AA,
+0x8F0DC4,
+0x7A06E0,
+0x6400FF,
 };
 
-const TProgmemPalette16 mySunsetPeach PROGMEM =
+const TProgmemPalette16 mySunsetBlue PROGMEM =
 {
-0xDD0040,
-0xDB1431,
-0xDA2824,
-0xD93A18,
-0xD9490D,
-0xD85406,
-0xD85B01,
-0xD85E00,
-0xD85E00,
-0xD85B01,
-0xD85406,
-0xD9490D,
-0xD93A18,
-0xDA2824,
-0xDB1431,
-0xDD0040,
+0x0000FF,
+0x1A04E7,
+0x3408D1,
+0x4A0CBD,
+0x5D0FAC,
+0x6C12A0,
+0x741398,
+0x781496,
+0x781496,
+0x741398,
+0x6C12A0,
+0x5D0FAC,
+0x4A0CBD,
+0x3408D1,
+0x1A04E7,
+0x0000FF,
 };
 
 const TProgmemPalette16 mySunsetGreen PROGMEM =
@@ -138,6 +139,7 @@ const TProgmemPalette16 mySunsetGreen PROGMEM =
 0x005000,
 };
 
+CRGBPalette16 temp;
 
 void setup() {
     delay(500); // power-up safety delay
@@ -151,6 +153,8 @@ void setup() {
 
     // mySunsetBlue, mySunsetPurple, mySunsetPeach, mySunsetGreen
      newPalette = mySunsetPeach;
+ 
+     
      switchPalettes();
 
      // Initialize LED colors
@@ -192,6 +196,7 @@ void loop()
 
     if (looper > RESOLUTION) {
       switchPalettes();
+      looper = 0;
     }
     
 
@@ -207,6 +212,7 @@ void switchPalettes() {
   currentPalette = newPalette;
   cycle = (cycle+1) % 4;
 
+  // Determines the order of the animation
       // mySunsetBlue, mySunsetPurple, mySunsetPeach, mySunsetGreen
   if (cycle == 0) {
     newPalette = mySunsetPurple;
@@ -221,7 +227,7 @@ void switchPalettes() {
   looper = 0;
 }
 
-void FillLEDsFromPaletteColors( uint8_t colorIndex)
+void FillLEDsFromPaletteColors(uint8_t colorIndex)
 {
         for (int sectionIndex = 0; sectionIndex < SECTIONS; sectionIndex++) {
            for( int i = 0; i < WAVE_LENGTH; i++) {
