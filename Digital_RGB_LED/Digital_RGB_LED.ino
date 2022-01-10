@@ -1,8 +1,8 @@
 #include <FastLED.h>
 
-#define LED_PIN     52
+#define LED_PIN     12
 #define NUM_LEDS    300
-#define BRIGHTNESS  250 // max: 250
+#define BRIGHTNESS  150 // max: 250
 #define LED_TYPE    WS2812B
 #define COLOR_ORDER GRB
 CRGB leds[NUM_LEDS];
@@ -11,14 +11,14 @@ CRGB leds[NUM_LEDS];
 // Wave per miniute. 1 means it takes 60 sec to flow through each LEDs
 // Max BPM is ~10 for 300 LEDS (RESOLUTION=1) 
 // Max BPM*RESOLUTION is ~3 for 300 LEDS (RESOLUTION>1) 
-#define BPM 2.0
+#define BPM 0.20
 
 // Advised max (sub) RESOLUTION is ~3, Min 1, Default 1
 // *** Set to 1 to reach FAST animation
 #define RESOLUTION 2
 
 // Scales the wave's length. >1.0 means overlays the stripe. Default: 1.0
-#define WAVE_LENGTH_SCALE 1.00
+#define WAVE_LENGTH_SCALE 1.4
 
 // This example shows several ways to set up and use 'palettes' of colors
 // with FastLED.
@@ -58,7 +58,7 @@ void setup() {
     currentBlending = LINEARBLEND;
 
     // OceanColors_p, CloudColors_p, LavaColors_p, HeatColors_p, ForestColors_p, and PartyColors_p., RainbowColors_p, RainbowStripeColors_p 
-     currentPalette = RainbowStripeColors_p ;
+     currentPalette = RainbowColors_p ;
 
      // Initialize LED colors
      FillLEDsFromPaletteColors(startIndex, false);
