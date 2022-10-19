@@ -1,6 +1,4 @@
 #include <FastLED.h>
-
-#define LED_PIN  12
 #include <Arduino.h>
 // Download from here: https://www.instructables.com/Tutorial-How-to-4-Digit-Display-Interface-With-Ard/
 #include <TM1637Display.h>
@@ -19,8 +17,8 @@ CRGB leds[NUM_LEDS];
 TM1637Display display(CLK, DIO);
 
 #define BRIGHTNESS_INPUT_PIN  1
-#define WAVE_LENGTH_INPUT_PIN  2
-#define BPM_INPUT_PIN  3
+#define WAVE_LENGTH_INPUT_PIN  3
+#define BPM_INPUT_PIN  2
 
 #define FILTER_FACTOR 3
 
@@ -82,7 +80,7 @@ void setup() {
      FillLEDsFromPaletteColors(startIndex, false);
 
      // Turning ON Serial communication may slow down the animation
-//     Serial.begin(9600); 
+     Serial.begin(9600); 
 
      applyConfiguration();
 
@@ -110,8 +108,8 @@ void loop()
     long timer = millis();
     int sleepTime = max(delayDelta - timer + stopper, 0);
     FastLED.delay(sleepTime);
-//    Serial.print("  delayDelta - timer + stopper: ");
-//    Serial.println(sleepTime);
+    Serial.print("  delayDelta - timer + stopper: ");
+    Serial.println(sleepTime);
     stopper = timer;
 
     showBPM(sleepTime>0);
@@ -164,23 +162,28 @@ float determineWaveLength(long potMeterValue) {
 }
 
 void setBrightnessByPotmeter(long potMeterValue) {
-    BRIGHTNESS += (determineBrightness(potMeterValue) - BRIGHTNESS) / FILTER_FACTOR;
+    //BRIGHTNESS += (determineBrightness(potMeterValue) - BRIGHTNESS) / FILTER_FACTOR;
+     BRIGHTNESS = 110;
 //    Serial.print("  BRIGHTNESS: ");
 //    Serial.print(BRIGHTNESS);
     FastLED.setBrightness(  BRIGHTNESS );
 }
 
 void setBPM(float potMeterValue) {
-    BPM += (determineBPM(potMeterValue) - BPM) / FILTER_FACTOR;
-//    Serial.print("  BPM: ");
-//    Serial.print(BPM);
+    // BPM += (determineBPM(potMeterValue) - BPM) / FILTER_FACTOR;
+    BPM = 10;
+    Serial.print("  BPM: ");
+    Serial.print(BPM);
     delayDelta = 60000.0 / ((float)NUM_LEDS * (float)RESOLUTION * BPM); // correction of calculation time loss
 }
 
 void setWaveLengthByPotmeter(float potMeterValue) {
     WAVE_LENGTH_SCALE += (determineWaveLength(potMeterValue) - WAVE_LENGTH_SCALE) / FILTER_FACTOR;
-//    Serial.print("  WAVE_LENGTH_SCALE: ");
-//    Serial.println(WAVE_LENGTH_SCALE);
+    Serial.print("  potMeterValue: ");
+    Serial.println(potMeterValue);
+
+      Serial.print("  WAVE_LENGTH_SCALE: ");
+    Serial.println(WAVE_LENGTH_SCALE);
 }
 
 void FillLEDsFromPaletteColors(long colorShift, bool shiftOnly)
