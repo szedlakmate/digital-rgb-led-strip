@@ -1,3 +1,10 @@
+/***************
+ This program is free software; you can redistribute it and/or
+ modify it under the terms of the GNU General Public License
+ version 2 as published by the Free Software Foundation.
+ ***************/
+
+
 #include <FastLED.h>
 
 // Pins
@@ -29,7 +36,7 @@ TBlendType currentBlending;
 static long looper = 0;
 
 // Determine delay time based on BPM and RESOLUTION
-static int delayDelta = 60000.0 * 2.0 * WAVE_LENGTH_SCALE / ((float)RESOLUTION * (float)NUM_LEDS * BPM);
+static int delayMillis = (60000.0 * 2.0 * WAVE_LENGTH_SCALE) / ((float)RESOLUTION * (float)NUM_LEDS * BPM);
 long stopper = millis();
 
 
@@ -51,32 +58,27 @@ void setup() {
 
 
 void loop() {
+  looper = (looper + 1) % (RESOLUTION * NUM_LEDS);
   //Serial.print("looper: ");
   //Serial.println(looper);
 
   FillLEDsFromPaletteColors(looper);
 
-  looper += 1;
-  if (looper >= (RESOLUTION * NUM_LEDS)) {
-    looper = 0;
-  }
-
-
-
   // Determine accurate sleep time
   long now = millis();
-  long waitMore = max(delayDelta - now + stopper, 0);
-  if (waitMore == 0) {
+  long waitMoreMillis = max(delayMillis - now + stopper, 0);
+  if (waitMoreMillis == 0) {
     //Serial.print("Missed [ms]:   ");
-    //Serial.println(-(delayDelta - now + stopper));
+    //Serial.println(-(delayMillis - now + stopper));
   }
-  FastLED.delay(waitMore);
+  FastLED.delay(waitMoreMillis);
   stopper = now;
 }
 
 void InitStripe() {
   for (int i = 0; i < NUM_LEDS; i += 1) {
-    float colorIndex = (float) i / ((float)WAVE_LENGTH_SCALE * (float)NUM_LEDS * (float)RESOLUTION) * 256.0;
+    float colorIndex = (float)i / (WAVE_LENGTH_SCALE * (float)NUM_LEDS * (float)RESOLUTION) * 256.0;
+    
     ledsPreset[i] = ColorFromPalette(currentPalette, round(colorIndex), BRIGHTNESS, currentBlending);
   }
 }
@@ -86,7 +88,11 @@ void FillLEDsFromPaletteColors(int looper) {
     int index = looper + i;
     leds[i] = ledsPreset[index % NUM_LEDS];
   }
-};
+}
+
+/*******************************************************
+ * REFFERENCES & EXAMPLES from unknown external source *
+ *******************************************************/
 
 // There are several different palettes of colors demonstrated here.
 //
