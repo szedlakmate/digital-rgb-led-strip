@@ -112,10 +112,10 @@ void FillLEDsFromPaletteColors(int looper) {
 // OceanColors_p, CloudColors_p, LavaColors_p, ForestColors_p, and PartyColors_p.
 
 
-void SetColorPalette(String color) {
-  // change all 16 palette entries...
-  fill_solid(currentPalette, 16, color);
-}
+// void SetColorPalette(String color) {
+//   // change all 16 palette entries...
+//   fill_solid(currentPalette, 16, color);
+// }
 
 // This function sets up a palette of black and white stripes,
 // using code.  Since the palette is effectively an array of
