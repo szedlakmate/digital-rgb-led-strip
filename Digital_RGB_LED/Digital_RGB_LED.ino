@@ -19,13 +19,8 @@ CRGB leds[NUM_LEDS];
 CRGB ledsPreset[NUM_LEDS];
 
 // Wave per miniute. 1 means it takes 60 sec to flow through each LEDs
-// Max BPM is ~10 for 300 LEDS (RESOLUTION=1)
-// Max BPM*RESOLUTION is ~3 for 300 LEDS (RESOLUTION>1)
+// Max BPM is ~10 for 300 LEDS
 #define BPM 2.0
-
-// Advised max (sub) RESOLUTION is ~3, Min 1, Default 1
-// *** Set to 1 to reach FAST animation
-#define RESOLUTION 1  // Ultrasound needs: BPM * RESOLUTION >= 240
 
 // Scales the wave's length. >1.0 means overlays the stripe. Default: 1.0
 #define WAVE_LENGTH_SCALE 1.00
@@ -35,15 +30,14 @@ TBlendType currentBlending;
 
 static long looper = 0;
 
-// Determine delay time based on BPM and RESOLUTION
-static int delayMillis = (60000.0 * 2.0 * WAVE_LENGTH_SCALE) / ((float)RESOLUTION * (float)NUM_LEDS * BPM);
+// Determine delay time based on BPM
+static int delayMillis = (60000.0 * 2.0) / ((float)NUM_LEDS * BPM);
 long stopper = millis();
 
 
 void setup() {
   delay(500);  // power-up safety delay
-  //Serial.begin(1000000);
-  //Serial.println("START");
+  Serial.begin(1000000); Serial.println("START");
 
   FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   FastLED.setBrightness(BRIGHTNESS);
@@ -58,9 +52,8 @@ void setup() {
 
 
 void loop() {
-  looper = (looper + 1) % (RESOLUTION * NUM_LEDS);
-  //Serial.print("looper: ");
-  //Serial.println(looper);
+  looper = (looper + 1) % NUM_LEDS;
+  Serial.print("looper: "); Serial.println(looper);
 
   FillLEDsFromPaletteColors(looper);
 
@@ -68,8 +61,7 @@ void loop() {
   long now = millis();
   long waitMoreMillis = max(delayMillis - now + stopper, 0);
   if (waitMoreMillis == 0) {
-    //Serial.print("Missed [ms]:   ");
-    //Serial.println(-(delayMillis - now + stopper));
+    Serial.print("Missed [ms]:   "); Serial.println(-(delayMillis - now + stopper));
   }
   FastLED.delay(waitMoreMillis);
   stopper = now;
@@ -77,9 +69,9 @@ void loop() {
 
 void InitStripe() {
   for (int i = 0; i < NUM_LEDS; i += 1) {
-    float colorIndex = (float)i / (WAVE_LENGTH_SCALE * (float)NUM_LEDS * (float)RESOLUTION) * 256.0;
+    float colorIndex = (float)i / (WAVE_LENGTH_SCALE * (float)NUM_LEDS) * 256.0;
     
-    ledsPreset[i] = ColorFromPalette(currentPalette, round(colorIndex), BRIGHTNESS, currentBlending);
+    ledsPreset[i] = ColorFromPalette(currentPalette, colorIndex, BRIGHTNESS, currentBlending);
   }
 }
 
