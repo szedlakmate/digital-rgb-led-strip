@@ -11,11 +11,6 @@
 #define LED_TYPE WS2812B
 #define COLOR_ORDER GRB
 
-// Module connection pins (Digital Pins)
-#define CLK 2
-#define DIO 3
-TM1637Display display(CLK, DIO);
-
 // Pins
 #define LED_PIN 25  // arduino digital pin
 #define BRIGHTNESS_INPUT_PIN 1
@@ -24,9 +19,9 @@ TM1637Display display(CLK, DIO);
 
 #define NUM_LEDS 300  // total num of leds on the full strip
 
-int BRIGHTNESS = 120;  // max: 250
+int BRIGHTNESS = 110;  // max: 250
 
-#define FILTER_FACTOR 3  // Defines how much measurements needed to be considered to apply change
+#define TRANSITION_SMOOTHNESS_STEPS 3  // Defines how much measurements needed to be considered to apply change
 
 CRGB leds[NUM_LEDS];
 CRGB ledsPreset[NUM_LEDS];
@@ -39,6 +34,7 @@ float BPM = 2.0;
 // Scales the wave's length. >1.0 means overlays the stripe. Default: 1.0
 float WAVE_LENGTH_SCALE = 1.00;
 #define WAVE_LENGTH_SCALE_MAX 5.0
+float waveLengthScalePotmeterValue = 10;
 
 CRGBPalette256 currentPalette;
 TBlendType currentBlending;
@@ -70,8 +66,6 @@ void setup() {
 
   measureAndApplySatet();
 
-  display.setBrightness(0x08);
-
   FillLEDsFromPaletteColors(0);
 }
 
@@ -93,7 +87,6 @@ void loop() {
 
   waitAndMeasure(waitMoreMillis);
 
-  showBPM(waitMoreMillis > 0);
   stopper = now;
 }
 
@@ -135,7 +128,7 @@ void measureAndApplySatet() {
 }
 
 int determineBrightness(long potMeterValue) {
-  return potMeterValue; // potMeterValue/255*255
+  return potMeterValue;  // potMeterValue/255*255
 }
 
 float determineBPM(long potMeterValue) {
@@ -143,15 +136,13 @@ float determineBPM(long potMeterValue) {
 }
 
 float determineWaveLength(long potMeterValue) {
-  float rawWaveLength = max(round(potMeterValue / 5.0 ) / 51.0 * WAVE_LENGTH_SCALE_MAX, 0.05);
-  // Filter noise by rounding scaled value. Helps at very short wave lengths
-  return ((float)round(rawWaveLength * 50)) / 50.0;
+  return max(potMeterValue / 255.0 * WAVE_LENGTH_SCALE_MAX, 0.05);
 }
 
 void setBrightnessByPotmeter(long potMeterValue) {
   Serial.print("  potMeterValue: ");
   Serial.println(potMeterValue);
-  BRIGHTNESS += (determineBrightness(potMeterValue) - BRIGHTNESS) / FILTER_FACTOR;
+  BRIGHTNESS += (determineBrightness(potMeterValue) - BRIGHTNESS) / TRANSITION_SMOOTHNESS_STEPS;
   Serial.print("  BRIGHTNESS: ");
   Serial.println(BRIGHTNESS);
   FastLED.setBrightness(BRIGHTNESS);
@@ -160,44 +151,23 @@ void setBrightnessByPotmeter(long potMeterValue) {
 void setBpmByPotmeter(float potMeterValue) {
   //Serial.print("  potMeterValue: ");
   //Serial.println(potMeterValue);
-  BPM += (determineBPM(potMeterValue) - BPM) / FILTER_FACTOR;
+  BPM += (determineBPM(potMeterValue) - BPM) / TRANSITION_SMOOTHNESS_STEPS;
   Serial.print("  BPM: ");
   Serial.println(BPM);
   delayMillis = determineDelayMillis();
 }
 
 void setWaveLengthByPotmeter(float potMeterValue) {
-  Serial.print("  potMeterValue: ");
-  Serial.println(potMeterValue);
-  WAVE_LENGTH_SCALE += (determineWaveLength(potMeterValue) - WAVE_LENGTH_SCALE) / FILTER_FACTOR;
+  // Serial.print("  potMeterValue: ");
+  // Serial.println(potMeterValue);
+
+  if (abs(waveLengthScalePotmeterValue - potMeterValue) > 2) {
+    WAVE_LENGTH_SCALE += (determineWaveLength(potMeterValue) - WAVE_LENGTH_SCALE);
+    waveLengthScalePotmeterValue = potMeterValue;
+  }
 
   Serial.print("  WAVE_LENGTH_SCALE: ");
   Serial.println(WAVE_LENGTH_SCALE);
-}
-
-
-float showBPM(bool bpmIsValid) {
-  // Set segment display
-  uint8_t data[] = { 0x00, 0x80, 0x00, 0x00 };
-
-  // Selectively set different digits
-  data[3] += display.encodeDigit((int)(BPM * 100) % 10);
-
-  if (BPM > 0.1) {
-    data[2] += display.encodeDigit((int)(BPM * 10) % 10);
-  }
-  if (BPM > 1) {
-    data[1] += display.encodeDigit((int)BPM % 10);
-  }
-  if (BPM > 10) {
-    data[0] += display.encodeDigit((int)(BPM / 10) % 10);
-  }
-
-  if (!bpmIsValid) {
-    data[0] = 0x49;
-  }
-
-  display.setSegments(data);
 }
 
 /*******************************************************
