@@ -19,7 +19,8 @@
 
 #define NUM_LEDS 300  // total num of leds on the full strip
 
-int BRIGHTNESS = 110;  // max: 250
+int BRIGHTNESS = 100;  // max: 250
+#define BRIGHTNESS_MAX 100
 
 #define TRANSITION_SMOOTHNESS_STEPS 3  // Defines how much measurements needed to be considered to apply change
 
@@ -122,21 +123,21 @@ void FillLEDsFromPaletteColors(int looper) {
 }
 
 void measureAndApplySatet() {
-  //setBrightnessByPotmeter(analogRead(BRIGHTNESS_INPUT_PIN));
+  setBrightnessByPotmeter(analogRead(BRIGHTNESS_INPUT_PIN));
   setBpmByPotmeter(analogRead(BPM_INPUT_PIN));
   setWaveLengthByPotmeter(analogRead(WAVE_LENGTH_INPUT_PIN));
 }
 
 int determineBrightness(long potMeterValue) {
-  return potMeterValue;  // potMeterValue/255*255
+  return min(max((potMeterValue / 650.0) * BRIGHTNESS_MAX, 0), BRIGHTNESS_MAX);
 }
 
 float determineBPM(long potMeterValue) {
-  return max((potMeterValue / 255.0) * BPM_MAX, 0);
+  return min(max((potMeterValue / 650.0) * BPM_MAX, 0), BPM_MAX);
 }
 
 float determineWaveLength(long potMeterValue) {
-  return max(potMeterValue / 255.0 * WAVE_LENGTH_SCALE_MAX, 0.05);
+  return min(max(potMeterValue / 650.0 * WAVE_LENGTH_SCALE_MAX, 0.05), WAVE_LENGTH_SCALE_MAX);
 }
 
 void setBrightnessByPotmeter(long potMeterValue) {
@@ -158,8 +159,8 @@ void setBpmByPotmeter(float potMeterValue) {
 }
 
 void setWaveLengthByPotmeter(float potMeterValue) {
-  // Serial.print("  potMeterValue: ");
-  // Serial.println(potMeterValue);
+  Serial.print("  potMeterValue: ");
+  Serial.println(potMeterValue);
 
   if (abs(waveLengthScalePotmeterValue - potMeterValue) > 2) {
     WAVE_LENGTH_SCALE += (determineWaveLength(potMeterValue) - WAVE_LENGTH_SCALE);
