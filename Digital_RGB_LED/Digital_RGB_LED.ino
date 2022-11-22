@@ -19,8 +19,8 @@
 
 #define NUM_LEDS 300  // total num of leds on the full strip
 
-int BRIGHTNESS = 100;  // max: 250
-#define BRIGHTNESS_MAX 100
+int BRIGHTNESS = 90;  // max: 250
+#define BRIGHTNESS_MAX 90
 
 #define TRANSITION_SMOOTHNESS_STEPS 3  // Defines how much measurements needed to be considered to apply change
 
@@ -65,14 +65,12 @@ void setup() {
   // OceanColors_p, CloudColors_p, LavaColors_p, HeatColors_p, ForestColors_p, and PartyColors_p., RainbowColors_p, RainbowStripeColors_p
   currentPalette = RainbowColors_p;
 
-  measureAndApplySatet();
-
   FillLEDsFromPaletteColors(0);
 }
 
 
 void loop() {
-  looper = (looper + 1) % NUM_LEDS;
+  looper += 1;
   Serial.print("looper: ");
   Serial.println(looper);
 
@@ -118,12 +116,11 @@ void FillLEDsFromPaletteColors(int looper) {
     float colorIndex = (float)(i + looper) / (WAVE_LENGTH_SCALE * (float)NUM_LEDS) * 256.0;
 
     leds[i] = ColorFromPalette(currentPalette, colorIndex, BRIGHTNESS, currentBlending);
-    //leds[i] = ledsPreset[index % NUM_LEDS];
   }
 }
 
 void measureAndApplySatet() {
-  setBrightnessByPotmeter(analogRead(BRIGHTNESS_INPUT_PIN));
+  //setBrightnessByPotmeter(analogRead(BRIGHTNESS_INPUT_PIN));
   setBpmByPotmeter(analogRead(BPM_INPUT_PIN));
   setWaveLengthByPotmeter(analogRead(WAVE_LENGTH_INPUT_PIN));
 }
