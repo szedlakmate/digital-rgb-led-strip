@@ -13,14 +13,14 @@
 
 // Pins
 #define LED_PIN 25  // arduino digital pin
-#define BRIGHTNESS_INPUT_PIN 1
-#define WAVE_LENGTH_INPUT_PIN 3
+#define BRIGHTNESS_INPUT_PIN 3
 #define BPM_INPUT_PIN 2
+#define WAVE_LENGTH_INPUT_PIN 1
 
 #define NUM_LEDS 300  // total num of leds on the full strip
 
-int BRIGHTNESS = 90;  // max: 250
-#define BRIGHTNESS_MAX 90
+int BRIGHTNESS = 50;  // max: 250
+#define BRIGHTNESS_MAX 100
 
 #define TRANSITION_SMOOTHNESS_STEPS 3  // Defines how much measurements needed to be considered to apply change
 
@@ -120,7 +120,7 @@ void FillLEDsFromPaletteColors(int looper) {
 }
 
 void measureAndApplySatet() {
-  //setBrightnessByPotmeter(analogRead(BRIGHTNESS_INPUT_PIN));
+  setBrightnessByPotmeter(analogRead(BRIGHTNESS_INPUT_PIN));
   setBpmByPotmeter(analogRead(BPM_INPUT_PIN));
   setWaveLengthByPotmeter(analogRead(WAVE_LENGTH_INPUT_PIN));
 }
@@ -138,34 +138,34 @@ float determineWaveLength(long potMeterValue) {
 }
 
 void setBrightnessByPotmeter(long potMeterValue) {
-  Serial.print("  potMeterValue: ");
-  Serial.println(potMeterValue);
+
   BRIGHTNESS += (determineBrightness(potMeterValue) - BRIGHTNESS) / TRANSITION_SMOOTHNESS_STEPS;
   Serial.print("  BRIGHTNESS: ");
-  Serial.println(BRIGHTNESS);
+  Serial.print(BRIGHTNESS);
+  Serial.print("  potMeterValue: ");
+  Serial.println(potMeterValue);
   FastLED.setBrightness(BRIGHTNESS);
 }
 
 void setBpmByPotmeter(float potMeterValue) {
-  //Serial.print("  potMeterValue: ");
-  //Serial.println(potMeterValue);
   BPM += (determineBPM(potMeterValue) - BPM) / TRANSITION_SMOOTHNESS_STEPS;
   Serial.print("  BPM: ");
-  Serial.println(BPM);
+  Serial.print(BPM);
+  Serial.print("  potMeterValue: ");
+  Serial.println(potMeterValue);
   delayMillis = determineDelayMillis();
 }
 
 void setWaveLengthByPotmeter(float potMeterValue) {
-  Serial.print("  potMeterValue: ");
-  Serial.println(potMeterValue);
-
   if (abs(waveLengthScalePotmeterValue - potMeterValue) > 2) {
     WAVE_LENGTH_SCALE += (determineWaveLength(potMeterValue) - WAVE_LENGTH_SCALE);
     waveLengthScalePotmeterValue = potMeterValue;
   }
 
   Serial.print("  WAVE_LENGTH_SCALE: ");
-  Serial.println(WAVE_LENGTH_SCALE);
+  Serial.print(WAVE_LENGTH_SCALE);
+  Serial.print("  potMeterValue: ");
+  Serial.println(potMeterValue);
 }
 
 /*******************************************************
