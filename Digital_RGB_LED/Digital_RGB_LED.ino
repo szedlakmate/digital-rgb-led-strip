@@ -21,6 +21,7 @@
 
 int BRIGHTNESS = 50;  // max: 250
 #define BRIGHTNESS_MAX 100
+int brightnessPotmeterValue = 10;
 
 #define TRANSITION_SMOOTHNESS_STEPS 3  // Defines how much measurements needed to be considered to apply change
 
@@ -31,11 +32,12 @@ CRGB ledsPreset[NUM_LEDS];
 // Max BPM is ~10 for 300 LEDS
 float BPM = 2.0;
 #define BPM_MAX 15.0
+int bpmPotmeterValue = 10;
 
 // Scales the wave's length. >1.0 means overlays the stripe. Default: 1.0
 float WAVE_LENGTH_SCALE = 1.00;
 #define WAVE_LENGTH_SCALE_MAX 5.0
-float waveLengthScalePotmeterValue = 10;
+int waveLengthScalePotmeterValue = 10;
 
 CRGBPalette256 currentPalette;
 TBlendType currentBlending;
@@ -137,9 +139,17 @@ float determineWaveLength(long potMeterValue) {
   return min(max(potMeterValue / 650.0 * WAVE_LENGTH_SCALE_MAX, 0.05), WAVE_LENGTH_SCALE_MAX);
 }
 
-void setBrightnessByPotmeter(long potMeterValue) {
+bool shouldApplyMeasurement(int originalMeasurement, int newMeasurement) {
+  // diff is larger than 2 OR (diff is lessOrEqual 2 AND newMeasurement is 0)
+  int tolerance = 4;
+  return (abs(originalMeasurement - newMeasurement) > tolerance || (abs(originalMeasurement - newMeasurement) <= tolerance && newMeasurement == 0));
+}
 
-  BRIGHTNESS += (determineBrightness(potMeterValue) - BRIGHTNESS) / TRANSITION_SMOOTHNESS_STEPS;
+void setBrightnessByPotmeter(long potMeterValue) {
+  if (shouldApplyMeasurement(brightnessPotmeterValue, potMeterValue)) {
+    BRIGHTNESS += (determineBrightness(potMeterValue) - BRIGHTNESS) / TRANSITION_SMOOTHNESS_STEPS;
+    brightnessPotmeterValue = potMeterValue;
+  }
   Serial.print("  BRIGHTNESS: ");
   Serial.print(BRIGHTNESS);
   Serial.print("  potMeterValue: ");
@@ -148,16 +158,20 @@ void setBrightnessByPotmeter(long potMeterValue) {
 }
 
 void setBpmByPotmeter(float potMeterValue) {
-  BPM += (determineBPM(potMeterValue) - BPM) / TRANSITION_SMOOTHNESS_STEPS;
+  if (shouldApplyMeasurement(bpmPotmeterValue, potMeterValue)) {
+    BPM += (determineBPM(potMeterValue) - BPM) / TRANSITION_SMOOTHNESS_STEPS;
+    delayMillis = determineDelayMillis();
+    bpmPotmeterValue = potMeterValue;
+  }
+
   Serial.print("  BPM: ");
   Serial.print(BPM);
   Serial.print("  potMeterValue: ");
   Serial.println(potMeterValue);
-  delayMillis = determineDelayMillis();
 }
 
 void setWaveLengthByPotmeter(float potMeterValue) {
-  if (abs(waveLengthScalePotmeterValue - potMeterValue) > 2) {
+  if (shouldApplyMeasurement(waveLengthScalePotmeterValue, potMeterValue)) {
     WAVE_LENGTH_SCALE += (determineWaveLength(potMeterValue) - WAVE_LENGTH_SCALE);
     waveLengthScalePotmeterValue = potMeterValue;
   }
