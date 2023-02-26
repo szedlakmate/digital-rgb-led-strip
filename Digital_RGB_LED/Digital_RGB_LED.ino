@@ -1,45 +1,31 @@
 #include <FastLED.h>
 
 // Pins
-#define LED_PIN     53    // arduino connection
-#define TRIG_PIN    7   // Ultrasound device 
-#define ECHO_PIN    8   // Ultrasound device  
+#define LED_PIN 53  // arduino connection
+#define BPM_INPUT_PIN 1
 
-#define NUM_LEDS    300   // total num of leds on the full strip
-#define SECTIONS    4.0   // the num of sections the strip was broken
-#define BRIGHTNESS  120   // max: 250
-#define LED_TYPE    WS2812B
+#define NUM_LEDS 300    // total num of leds on the full strip
+#define SECTIONS 4.0    // the num of sections the strip was broken
+#define BRIGHTNESS 250  // max: 250
+#define LED_TYPE WS2812B
 #define COLOR_ORDER GRB
 CRGB leds[NUM_LEDS];
 
 // Ultrasound distance measurement from https://github.com/szedlakmate/arduino-ultrasound-distance-measurement
 
-const int numReadings = 3;
-const float threshold = 100;     // ?unit
-
-float readings[numReadings];    // the readings from the analog input
-int readIndex = 0;              // the index of the current reading
-float sum = 0;                  // sum of readings
-float average = 0;              // the average
-float prevavg = 0;              // previous average
-int count = 0;                  // counting readings' elements
-int dropcount = 0;              // counting the measurement anomalies
-
-int appliedBrightness = BRIGHTNESS;
-
-// Anything over 50 cm (2900 us(?) pulse) is "out of range"
-const unsigned int MAX_DIST = 3300;
-
-// *** End of injection *********************************
 
 // Wave per miniute. 1 means it takes 60 sec to flow through each LEDs
-// Max BPM is ~10 for 300 LEDS (RESOLUTION=1) 
-// Max BPM*RESOLUTION is ~3 for 300 LEDS (RESOLUTION>1) 
-#define BPM 6.0
+// Max BPM is ~10 for 300 LEDS (RESOLUTION=1)
+// Max BPM*RESOLUTION is ~3 for 300 LEDS (RESOLUTION>1)
+float bpm = 0.1;
+#define BPM_MAX 15.0
+int bpmPotmeterValue = 10;  // Initial value
+
+#define TRANSITION_SMOOTHNESS_STEPS 3  // Defines how much measurements needed to be considered to apply change
 
 // Advised max (sub) RESOLUTION is ~3, Min 1, Default 1
 // *** Set to 1 to reach FAST animation
-#define RESOLUTION 100  // Ultrasound needs: BPM * RESOLUTION >= 240
+#define RESOLUTION 200  // Ultrasound needs: BPM * RESOLUTION >= 240
 
 // Scales the wave's length. >1.0 means overlays the stripe. Default: 1.0
 static int WAVE_LENGTH = (NUM_LEDS / SECTIONS);
@@ -49,171 +35,153 @@ int cycle = -1;
 
 CRGBPalette16 currentPalette;
 CRGBPalette16 newPalette;
-TBlendType    currentBlending;
+TBlendType currentBlending;
 
 static long looper = 0;
 
-// Determine delay time based on BPM and RESOLUTION
-static int delayDelta = 60000.0 / ((float)RESOLUTION * BPM) ;
-long stopper = 0;
+int determineDelayMillis() {
+  return (60000.0 * 2.0) / ((float)NUM_LEDS * max(bpm, 0.00000000001));
+}
+
+// Determine delay time based on BPM
+static int delayMillis = determineDelayMillis();
+long stopper = millis();
 
 
 // Palettes in order
-const TProgmemPalette16 mySunsetPeach PROGMEM =
-{
-0x960096,
-0xAD1674,
-0xC32B54,
-0xD73E38,
-0xE84E20,
-0xF45A0E,
-0xFC6103,
-0xFF6400,
-0xFF6400,
-0xFC6103,
-0xF45A0E,
-0xE84E20,
-0xD73E38,
-0xC32B54,
-0xAD1674,
-0x960096,
+const TProgmemPalette16 mySunsetPeach PROGMEM = {
+  0x960096,
+  0xAD1674,
+  0xC32B54,
+  0xD73E38,
+  0xE84E20,
+  0xF45A0E,
+  0xFC6103,
+  0xFF6400,
+  0xFF6400,
+  0xFC6103,
+  0xF45A0E,
+  0xE84E20,
+  0xD73E38,
+  0xC32B54,
+  0xAD1674,
+  0x960096,
 };
 
-const TProgmemPalette16 mySunsetPurple PROGMEM =
-{
-0x6400FF,
-0x7A06E0,
-0x8F0DC4,
-0xA212AA,
-0xB21795,
-0xBE1B85,
-0xC51D7B,
-0xC81E78,
-0xC81E78,
-0xC51D7B,
-0xBE1B85,
-0xB21795,
-0xA212AA,
-0x8F0DC4,
-0x7A06E0,
-0x6400FF,
+const TProgmemPalette16 mySunsetPurple PROGMEM = {
+  0x6400FF,
+  0x7A06E0,
+  0x8F0DC4,
+  0xA212AA,
+  0xB21795,
+  0xBE1B85,
+  0xC51D7B,
+  0xC81E78,
+  0xC81E78,
+  0xC51D7B,
+  0xBE1B85,
+  0xB21795,
+  0xA212AA,
+  0x8F0DC4,
+  0x7A06E0,
+  0x6400FF,
 };
 
-const TProgmemPalette16 mySunsetBlue PROGMEM =
-{
-0x0000FF,
-0x1A04E7,
-0x3408D1,
-0x4A0CBD,
-0x5D0FAC,
-0x6C12A0,
-0x741398,
-0x781496,
-0x781496,
-0x741398,
-0x6C12A0,
-0x5D0FAC,
-0x4A0CBD,
-0x3408D1,
-0x1A04E7,
-0x0000FF,
+const TProgmemPalette16 mySunsetBlue PROGMEM = {
+  0x0000FF,
+  0x1A04E7,
+  0x3408D1,
+  0x4A0CBD,
+  0x5D0FAC,
+  0x6C12A0,
+  0x741398,
+  0x781496,
+  0x781496,
+  0x741398,
+  0x6C12A0,
+  0x5D0FAC,
+  0x4A0CBD,
+  0x3408D1,
+  0x1A04E7,
+  0x0000FF,
 };
 
-const TProgmemPalette16 mySunsetGreen PROGMEM =
-{
-0x005000,
-0x003E0A,
-0x002D14,
-0x001E1D,
-0x001125,
-0x00072B,
-0x00022E,
-0x000030,
-0x000030,
-0x00022E,
-0x00072B,
-0x001125,
-0x001E1D,
-0x002D14,
-0x003E0A,
-0x005000,
+const TProgmemPalette16 mySunsetGreen PROGMEM = {
+  0x005000,
+  0x003E0A,
+  0x002D14,
+  0x001E1D,
+  0x001125,
+  0x00072B,
+  0x00022E,
+  0x000030,
+  0x000030,
+  0x00022E,
+  0x00072B,
+  0x001125,
+  0x001E1D,
+  0x002D14,
+  0x003E0A,
+  0x005000,
 };
 
 CRGBPalette16 temp;
 
 void setup() {
-    delay(500); // power-up safety delay
-    
-    FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
-    FastLED.setBrightness(appliedBrightness);
-    
-    currentBlending = LINEARBLEND;
+  delay(500);  // power-up safety delay
 
-    // OceanColors_p, CloudColors_p, LavaColors_p, HeatColors_p, ForestColors_p, and PartyColors_p., RainbowColors_p, RainbowStripeColors_p 
+  FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  FastLED.setBrightness(BRIGHTNESS);
 
-    // mySunsetBlue, mySunsetPurple, mySunsetPeach, mySunsetGreen
-     newPalette = mySunsetPeach;
- 
-     
-     switchPalettes();
+  currentBlending = LINEARBLEND;
 
-     // Initialize LED colors
-     FillLEDsFromPaletteColors(looper);
+  // OceanColors_p, CloudColors_p, LavaColors_p, HeatColors_p, ForestColors_p, and PartyColors_p., RainbowColors_p, RainbowStripeColors_p
 
-    // Ultrasound stuff ***********
-   
-    // The Trigger pin will tell the sensor to range find
-    pinMode(TRIG_PIN, OUTPUT);
-    digitalWrite(TRIG_PIN, LOW);
-  
-    // Initialize built-in LED - Blinking signs active data transfer
-    pinMode(LED_BUILTIN, OUTPUT);
-    digitalWrite(LED_BUILTIN, LOW);           // Set built-in LED to default: Off  
-  
-    // We'll use the serial monitor to view the sensor output
-    Serial.begin(9600);
-    for (int thisReading = 0; thisReading < numReadings; thisReading++) {
-    readings[thisReading] = 0;  
-    }
+  // mySunsetBlue, mySunsetPurple, mySunsetPeach, mySunsetGreen
+  newPalette = mySunsetPeach;
+
+  switchPalettes();
+
+  // Initialize LED colors
+  FillLEDsFromPaletteColors(looper);
+
+  // Initialize built-in LED - Blinking signs active data transfer
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWrite(LED_BUILTIN, LOW);  // Set built-in LED to default: Off
+
+  // We'll use the serial monitor to view the sensor output
+  Serial.begin(9600);
 }
 
 
-void loop()
-{
-    FillLEDsFromPaletteColors(looper);
-    
-    // Ultrasound measurement
-    measure();
-//    Serial.println(average);
-    if (average > 0) {
-      // Smoothen brightness change
-      appliedBrightness = (appliedBrightness + min(average, 250))/2;
-      FastLED.setBrightness( appliedBrightness );
-    }
-    
-    FastLED.show();
-    looper += 1;
+void loop() {
+  looper += 1;
+  if (looper > RESOLUTION) {
+    switchPalettes();
+    looper = 0;
+  }
 
-    if (looper > RESOLUTION) {
-      switchPalettes();
-      looper = 0;
-    }
-    
+  FillLEDsFromPaletteColors(looper);
 
-    // Determine accurate sleep time
-    long timer = millis();
-    FastLED.delay(max(delayDelta - timer + stopper, 0));
-//    Serial.print("  delayDelta - timer + stopper: ");
-//    Serial.println(delayDelta - timer + stopper);
-    stopper = timer;
+  // Determine accurate sleep time
+  long now = millis();
+  long waitMoreMillis = max(delayMillis - now + stopper, 0);
+  if (waitMoreMillis == 0) {
+    Serial.print("Missed [ms]:   ");
+    Serial.println(-(delayMillis - now + stopper));
+  }
+
+  waitAndMeasure(waitMoreMillis);
+
+  stopper = now;
 }
 
 void switchPalettes() {
   currentPalette = newPalette;
-  cycle = (cycle+1) % 4;
+  cycle = (cycle + 1) % 4;
 
   // Determines the order of the animation
-      // mySunsetBlue, mySunsetPurple, mySunsetPeach, mySunsetGreen
+  // mySunsetBlue, mySunsetPurple, mySunsetPeach, mySunsetGreen
   if (cycle == 0) {
     newPalette = mySunsetPurple;
   } else if (cycle == 1) {
@@ -222,178 +190,72 @@ void switchPalettes() {
     newPalette = mySunsetGreen;
   } else if (cycle == 3) {
     newPalette = mySunsetPeach;
-  } 
- 
+  }
+
   looper = 0;
 }
 
-void FillLEDsFromPaletteColors(uint8_t colorIndex)
-{
-        for (int sectionIndex = 0; sectionIndex < SECTIONS; sectionIndex++) {
-           for( int i = 0; i < WAVE_LENGTH; i++) {
+void waitAndMeasure(int waitMillis) {
+  int samplingCount = max(round(waitMillis / 300.0), 1);
 
-              leds[i+sectionIndex*WAVE_LENGTH] =  blend(
-                  ColorFromPalette(currentPalette, (i)*255/WAVE_LENGTH, appliedBrightness, currentBlending),
-                  ColorFromPalette(newPalette,     (i)*255/WAVE_LENGTH, appliedBrightness, currentBlending),
-                  (float)looper*255.0/(float)RESOLUTION  // 0 - 255
-              );
-              
-//            leds[i+sectionIndex*WAVE_LENGTH] = ColorFromPalette(currentPalette, (i)*255/WAVE_LENGTH, appliedBrightness, currentBlending);
-          }
-        }
-};
-
-// There are several different palettes of colors demonstrated here.
-//
-// FastLED provides several 'preset' palettes: RainbowColors_p, RainbowStripeColors_p,
-// OceanColors_p, CloudColors_p, LavaColors_p, ForestColors_p, and PartyColors_p.
-
-/*
-void SetColorPalette(String color)
-{
-
-    // 'black out' all 16 palette entries...
-    fill_solid( currentPalette, 16, color);
-}
-*/
-// This function sets up a palette of black and white stripes,
-// using code.  Since the palette is effectively an array of
-// sixteen CRGB colors, the various fill_* functions can be used
-// to set them up.
-void SetupBlackAndWhiteStripedPalette()
-{
-    // 'black out' all 16 palette entries...
-    fill_solid( currentPalette, 16, CRGB::Black);
-    // and set every fourth one to white.
-    currentPalette[0] = CRGB::White;
-    currentPalette[4] = CRGB::White;
-    currentPalette[8] = CRGB::White;
-    currentPalette[12] = CRGB::White;
-    
-}
-
-
-
-// This function sets up a palette of purple and green stripes.
-void SetupPurpleAndGreenPalette()
-{
-    CRGB purple = CHSV( HUE_PURPLE, 255, 255);
-    CRGB green  = CHSV( HUE_GREEN, 255, 255);
-    CRGB black  = CRGB::Black;
-    
-    currentPalette = CRGBPalette16(
-                                   green,  green,  black,  black,
-                                   purple, purple, black,  black,
-                                   green,  green,  black,  black,
-                                   purple, purple, black,  black );
-}
-
-
-// This example shows how to set up a static color palette
-// which is stored in PROGMEM (flash), which is almost always more
-// plentiful than RAM.  A static PROGMEM palette like this
-// takes up 64 bytes of flash.
-const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM =
-{
-    CRGB::Red,
-    CRGB::Gray, // 'white' is too bright compared to red and blue
-    CRGB::Blue,
-    CRGB::Black,
-    
-    CRGB::Red,
-    CRGB::Gray,
-    CRGB::Blue,
-    CRGB::Black,
-    
-    CRGB::Red,
-    CRGB::Red,
-    CRGB::Gray,
-    CRGB::Gray,
-    CRGB::Blue,
-    CRGB::Blue,
-    CRGB::Black,
-    CRGB::Black
-};
-
-
-// Ultrasonic mess *****************************
-void reset(){
-  // If too many highly different measurement were recorded, 
-  // the program drops all saved data and reset the variables.
-  for (int thisReading = 0; thisReading < numReadings; thisReading++) {
-    readings[thisReading] = 0; 
+  if (samplingCount > 10) {
+    Serial.print("!! samplingCount:   ");
+    Serial.println(samplingCount);
   }
-  count = 0;
-  readIndex = 0;
-  sum = 0;
-  average = 0;
-  dropcount = 0;
-  prevavg = 0;
-}
 
+  for (int i = 0; i < samplingCount; i += 1) {
+    FastLED.delay(waitMillis / samplingCount);
+    measureAndApplyState();
 
-void measure() {
-   unsigned long t1;
-  unsigned long t2;
-  unsigned long pulse_width;
-  float mm;
+    if (bpm == 0.0) {
+      i = 0;
+    }
 
-  // Hold the trigger pin high for at least 10 us
-  digitalWrite(TRIG_PIN, HIGH);
-  delayMicroseconds(10);
-  digitalWrite(TRIG_PIN, LOW);
-
-  // Wait for pulse on echo pin
-  while ( digitalRead(ECHO_PIN) == 0 );
-
-  // Measure how long the echo pin was held high (pulse width)
-  // Note: the micros() counter will overflow after ~70 min
-  t1 = micros();
-  while ( digitalRead(ECHO_PIN) == 1);
-  t2 = micros();
-  pulse_width = t2 - t1;
-
-                   // Calculate distance in millimeters. The constants
-                   // are found in the datasheet, and calculated from the assumed speed 
-                   // of sound in air at sea level (~340 m/s).
-                   // mm = round(pulse_width / 0.580)/10; // Original calculation method
-  mm = round(pulse_width *1.716+6.76)/10; // Calibrated method
-  // Print out results
-  if ( pulse_width > MAX_DIST ) {
-//     Serial.println("Out of range");
-  } else {
-      if ((count < numReadings) or ((mm > average - threshold) and (mm < average + threshold))) {
-        if (count < numReadings) {
-          count += 1;
-          } 
-         // drop old data
-        sum = sum - readings[readIndex];
-        // add new data
-        readings[readIndex] = mm;
-        sum = sum + readings[readIndex];
-        readIndex = readIndex + 1;
-        if (readIndex >= numReadings) {
-          // ...wrap around to the beginning:
-          readIndex = 0;
-          if (dropcount > 0) {
-            dropcount -= 1;
-          }
-        }
-        // Calcualting the average
-        average = sum / numReadings;
-        if ((count == numReadings) and (average < prevavg + threshold)
-        and (average > prevavg - threshold)) {
-//          Serial.print(average);               
-//          Serial.println(",");
-        }
-        prevavg = average;
-      } else {
-        if (count == numReadings){
-          dropcount += 1;
-          if (dropcount == 3){
-            reset();
-          }
-        }
-      }
+    if (determineDelayMillis() < waitMillis * i / samplingCount && bpm > 0.0) {
+      break;
+    }
   }
 }
+
+void measureAndApplyState() {
+  setBpmByPotmeter(analogRead(BPM_INPUT_PIN));
+}
+
+float determineBPM(long potMeterValue) {
+  return min(max((potMeterValue / 650.0) * BPM_MAX, 0), BPM_MAX);
+}
+
+bool shouldApplyMeasurement(int originalMeasurement, int newMeasurement) {
+  // diff is larger than 2 OR (diff is lessOrEqual 2 AND newMeasurement is 0)
+  int tolerance = 4;
+  return (abs(originalMeasurement - newMeasurement) > tolerance || (abs(originalMeasurement - newMeasurement) <= tolerance && newMeasurement == 0));
+}
+
+void setBpmByPotmeter(float potMeterValue) {
+  if (shouldApplyMeasurement(bpmPotmeterValue, potMeterValue)) {
+    bpm += (determineBPM(potMeterValue) - bpm) / TRANSITION_SMOOTHNESS_STEPS;
+    delayMillis = determineDelayMillis();
+    bpmPotmeterValue = potMeterValue;
+  }
+
+  Serial.print("  BPM: ");
+  Serial.print(bpm);
+  Serial.print("  potMeterValue: ");
+  Serial.println(potMeterValue);
+}
+
+
+void FillLEDsFromPaletteColors(uint8_t colorIndex) {
+  for (int sectionIndex = 0; sectionIndex < SECTIONS; sectionIndex++) {
+    for (int i = 0; i < WAVE_LENGTH; i++) {
+
+      leds[i + sectionIndex * WAVE_LENGTH] = blend(
+        ColorFromPalette(currentPalette, (i)*255 / WAVE_LENGTH, BRIGHTNESS, currentBlending),
+        ColorFromPalette(newPalette, (i)*255 / WAVE_LENGTH, BRIGHTNESS, currentBlending),
+        (float)looper * 255.0 / (float)RESOLUTION  // 0 - 255
+      );
+
+      //            leds[i+sectionIndex*WAVE_LENGTH] = ColorFromPalette(currentPalette, (i)*255/WAVE_LENGTH, BRIGHTNESS, currentBlending);
+    }
+  }
+};
