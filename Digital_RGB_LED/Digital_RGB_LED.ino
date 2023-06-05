@@ -4,6 +4,11 @@
  version 2 as published by the Free Software Foundation.
  ***************/
 
+#include <SoftwareSerial.h>
+SoftwareSerial bluetooth(10, 11);
+// Expected message format:
+// #250,2.0,0.3;      #(int)BRIGHTNESS,(float)BPM,(float)WAVELENGTHSCALE;
+
 // Original source: https://www.instructables.com/Tutorial-How-to-4-Digit-Display-Interface-With-Ard/
 #include <FastLED.h>
 #include <TM1637Display.h>
@@ -12,18 +17,12 @@
 #define COLOR_ORDER GRB
 
 // Pins
-#define LED_PIN 25  // arduino digital pin
-#define BRIGHTNESS_INPUT_PIN 3
-#define BPM_INPUT_PIN 2
-#define WAVE_LENGTH_INPUT_PIN 1
-
+#define LED_PIN 25    // arduino digital pin
 #define NUM_LEDS 300  // total num of leds on the full strip
 
-int BRIGHTNESS = 50;  // max: 250
-#define BRIGHTNESS_MAX 100
-int brightnessPotmeterValue = 10;
+int BRIGHTNESS = 30;  // max: 250
+#define BRIGHTNESS_MAX 250
 
-#define TRANSITION_SMOOTHNESS_STEPS 3  // Defines how much measurements needed to be considered to apply change
 
 CRGB leds[NUM_LEDS];
 CRGB ledsPreset[NUM_LEDS];
@@ -32,17 +31,16 @@ CRGB ledsPreset[NUM_LEDS];
 // Max BPM is ~10 for 300 LEDS
 float BPM = 2.0;
 #define BPM_MAX 15.0
-int bpmPotmeterValue = 10;
 
 // Scales the wave's length. >1.0 means overlays the stripe. Default: 1.0
-float WAVE_LENGTH_SCALE = 1.00;
+float WAVE_LENGTH_SCALE = 0.300;
 #define WAVE_LENGTH_SCALE_MAX 5.0
-int waveLengthScalePotmeterValue = 10;
 
 CRGBPalette256 currentPalette;
 TBlendType currentBlending;
 
 static long looper = 0;
+static char delimiter = ';';
 
 
 int determineDelayMillis() {
@@ -56,7 +54,9 @@ long stopper = millis();
 
 void setup() {
   delay(500);  // power-up safety delay
-  Serial.begin(500000);
+  bluetooth.begin(9600);
+  bluetooth.println("Bluetooth On");
+  Serial.begin(9600);
   Serial.println("START");
 
   FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
@@ -73,8 +73,11 @@ void setup() {
 
 void loop() {
   looper += 1;
-  Serial.print("looper: ");
-  Serial.println(looper);
+  //Serial.print("looper: ");
+  //Serial.println(looper);
+  // bluetooth.println("looper:");
+  // bluetooth.println(looper);
+
 
   FillLEDsFromPaletteColors(looper);
 
@@ -101,7 +104,7 @@ void waitAndMeasure(int waitMillis) {
 
   for (int i = 0; i < samplingCount; i += 1) {
     FastLED.delay(waitMillis / samplingCount);
-    measureAndApplySatet();
+    readBluetooth();
 
     if (BPM == 0.0) {
       i = 0;
@@ -121,65 +124,48 @@ void FillLEDsFromPaletteColors(int looper) {
   }
 }
 
-void measureAndApplySatet() {
-  setBrightnessByPotmeter(analogRead(BRIGHTNESS_INPUT_PIN));
-  setBpmByPotmeter(analogRead(BPM_INPUT_PIN));
-  setWaveLengthByPotmeter(analogRead(WAVE_LENGTH_INPUT_PIN));
-}
+void readBluetooth() {
+  if (bluetooth.available()) {
+    String command = bluetooth.readStringUntil(delimiter);
+    bluetooth.println("command: ");
+    bluetooth.println(command);
 
-int determineBrightness(long potMeterValue) {
-  return min(max((potMeterValue / 650.0) * BRIGHTNESS_MAX, 0), BRIGHTNESS_MAX);
-}
+    if (command == "LED") {
+      String paramsString = bluetooth.readStringUntil(delimiter);
+      paramsString.trim();  // Remove leading/trailing whitespace
+      bluetooth.println("paramsString: ");
+      bluetooth.println(paramsString);
 
-float determineBPM(long potMeterValue) {
-  return min(max((potMeterValue / 650.0) * BPM_MAX, 0), BPM_MAX);
-}
+      // Process the parameters here
+      parseParameters(paramsString);
 
-float determineWaveLength(long potMeterValue) {
-  return min(max(potMeterValue / 650.0 * WAVE_LENGTH_SCALE_MAX, 0.05), WAVE_LENGTH_SCALE_MAX);
-}
-
-bool shouldApplyMeasurement(int originalMeasurement, int newMeasurement) {
-  // diff is larger than 2 OR (diff is lessOrEqual 2 AND newMeasurement is 0)
-  int tolerance = 4;
-  return (abs(originalMeasurement - newMeasurement) > tolerance || (abs(originalMeasurement - newMeasurement) <= tolerance && newMeasurement == 0));
-}
-
-void setBrightnessByPotmeter(long potMeterValue) {
-  if (shouldApplyMeasurement(brightnessPotmeterValue, potMeterValue)) {
-    BRIGHTNESS += (determineBrightness(potMeterValue) - BRIGHTNESS) / TRANSITION_SMOOTHNESS_STEPS;
-    brightnessPotmeterValue = potMeterValue;
+      // Send an acknowledgment
+      bluetooth.println("ACK");
+    }
   }
-  Serial.print("  BRIGHTNESS: ");
-  Serial.print(BRIGHTNESS);
-  Serial.print("  potMeterValue: ");
-  Serial.println(potMeterValue);
-  FastLED.setBrightness(BRIGHTNESS);
 }
 
-void setBpmByPotmeter(float potMeterValue) {
-  if (shouldApplyMeasurement(bpmPotmeterValue, potMeterValue)) {
-    BPM += (determineBPM(potMeterValue) - BPM) / TRANSITION_SMOOTHNESS_STEPS;
+void parseParameters(String paramsString) {
+  int commaIndex1 = paramsString.indexOf(',');
+  int commaIndex2 = paramsString.indexOf(',', commaIndex1 + 1);
+
+  if (commaIndex1 != -1 && commaIndex2 != -1) {
+    BRIGHTNESS = paramsString.substring(0, commaIndex1).toInt();
+    BPM = paramsString.substring(commaIndex1 + 1, commaIndex2).toFloat();
+    WAVE_LENGTH_SCALE = paramsString.substring(commaIndex2 + 1).toFloat();
     delayMillis = determineDelayMillis();
-    bpmPotmeterValue = potMeterValue;
+
+    // Process the parameters further if needed
+    bluetooth.print("BRIGHTNESS: ");
+    bluetooth.println(BRIGHTNESS);
+    bluetooth.print("BPM: ");
+    bluetooth.println(BPM);
+    bluetooth.print("WAVE_LENGTH_SCALE: ");
+    bluetooth.println(WAVE_LENGTH_SCALE);
+  } else {
+    // Throw an exception if parsing fails
+    bluetooth.println("Parsing error");
   }
-
-  Serial.print("  BPM: ");
-  Serial.print(BPM);
-  Serial.print("  potMeterValue: ");
-  Serial.println(potMeterValue);
-}
-
-void setWaveLengthByPotmeter(float potMeterValue) {
-  if (shouldApplyMeasurement(waveLengthScalePotmeterValue, potMeterValue)) {
-    WAVE_LENGTH_SCALE += (determineWaveLength(potMeterValue) - WAVE_LENGTH_SCALE);
-    waveLengthScalePotmeterValue = potMeterValue;
-  }
-
-  Serial.print("  WAVE_LENGTH_SCALE: ");
-  Serial.print(WAVE_LENGTH_SCALE);
-  Serial.print("  potMeterValue: ");
-  Serial.println(potMeterValue);
 }
 
 /*******************************************************
