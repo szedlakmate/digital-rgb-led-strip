@@ -20,7 +20,7 @@ SoftwareSerial bluetooth(10, 11);
 #define LED_PIN 25    // arduino digital pin
 #define NUM_LEDS 300  // total num of leds on the full strip
 
-int BRIGHTNESS = 30;  // max: 250
+int BRIGHTNESS = 250;  // max: 250
 #define BRIGHTNESS_MAX 250
 
 
@@ -73,12 +73,6 @@ void setup() {
 
 void loop() {
   looper += 1;
-  //Serial.print("looper: ");
-  //Serial.println(looper);
-  // bluetooth.println("looper:");
-  // bluetooth.println(looper);
-
-
   FillLEDsFromPaletteColors(looper);
 
   // Determine accurate sleep time
@@ -125,34 +119,39 @@ void FillLEDsFromPaletteColors(int looper) {
 }
 
 void readBluetooth() {
-  if (bluetooth.available()) {
-    String command = bluetooth.readStringUntil(delimiter);
-    bluetooth.println("command: ");
-    bluetooth.println(command);
-
-    if (command == "LED") {
-      String paramsString = bluetooth.readStringUntil(delimiter);
-      paramsString.trim();  // Remove leading/trailing whitespace
-      bluetooth.println("paramsString: ");
-      bluetooth.println(paramsString);
-
-      // Process the parameters here
-      parseParameters(paramsString);
-
-      // Send an acknowledgment
-      bluetooth.println("ACK");
+  String inputString = "";
+  for (int i = 1; i <= 28; i = i + 1) {
+    if (bluetooth.available()) {
+      // get the new byte:
+      char inChar = (char)bluetooth.read();
+      // add it to the inputString:
+      inputString += inChar;
     }
+    // do something else while waiting
+  }
+
+  if (inputString != "") {
+    bluetooth.println("inputString: ");
+    bluetooth.println(inputString);
+  }
+
+  if (inputString[0] == '#') {
+
+    // Process the parameters here
+    parseParameters(inputString);
+    // Send an acknowledgment
+    bluetooth.println("ACK");
   }
 }
 
-void parseParameters(String paramsString) {
-  int commaIndex1 = paramsString.indexOf(',');
-  int commaIndex2 = paramsString.indexOf(',', commaIndex1 + 1);
+void parseParameters(String params) {
+  int commaIndex1 = params.indexOf(',');
+  int commaIndex2 = params.indexOf(',', commaIndex1 + 1);
 
   if (commaIndex1 != -1 && commaIndex2 != -1) {
-    BRIGHTNESS = paramsString.substring(0, commaIndex1).toInt();
-    BPM = paramsString.substring(commaIndex1 + 1, commaIndex2).toFloat();
-    WAVE_LENGTH_SCALE = paramsString.substring(commaIndex2 + 1).toFloat();
+    BRIGHTNESS = params.substring(1, commaIndex1).toInt();
+    BPM = params.substring(commaIndex1 + 1, commaIndex2).toFloat();
+    WAVE_LENGTH_SCALE = params.substring(commaIndex2 + 1).toFloat();
     delayMillis = determineDelayMillis();
 
     // Process the parameters further if needed
