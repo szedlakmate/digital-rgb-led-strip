@@ -9,8 +9,8 @@
 // WIFI CONFIG
 #include <ESP8266WiFi.h>
 #include <ESP8266WebServer.h>
-#include <ESP8266SSDP.h>
 #include <WiFiClient.h>
+#include <ArduinoJson.h>
 #include <FS.h>  // Include the SPIFFS library
 
 // Credentials
@@ -43,7 +43,7 @@ CRGB ledsPreset[NUM_LEDS];
 
 // Wave per miniute. 1 means it takes 60 sec to flow through each LEDs
 // Max BPM is ~10 for 300 LEDS
-#define BPM 2.0
+float BPM = 2.0;
 
 // Scales the wave's length. >1.0 means overlays the stripe. Default: 1.0
 #define WAVE_LENGTH_SCALE 1.00
@@ -62,6 +62,7 @@ void setup() {
   delay(500);  // power-up safety delay
   Serial.begin(1000000);
   Serial.println("START");
+  digitalWrite(LED_BUILTIN, HIGH);
 
   // WIFI
   setupWifi();
@@ -117,6 +118,14 @@ void FillLEDsFromPaletteColors(int looper) {
 
 
 /* ********************************************************** */
+// Helper function to get optional parameter from JSON
+template<typename T>
+T getOptionalParam(JsonObject jsonObject, const char* paramName, T defaultValue) {
+  if (jsonObject.containsKey(paramName)) {
+    return jsonObject[paramName].as<T>();
+  }
+  return defaultValue;
+}
 // WIFI CONFIG
 void setupWifi() {
   WiFi.mode(WIFI_STA);
@@ -128,33 +137,41 @@ void setupWifi() {
   Serial.println("\nConnected to WiFi");
   Serial.print("IP address: ");
   Serial.println(WiFi.localIP());  //Print the local IP
-  server.on("/blink", handleBody);  //Associate the handler function to the path
-  server.begin();                   //Start the server
+  server.begin();                  //Start the server
   Serial.println("Server listening");
   digitalWrite(LED_BUILTIN, LOW);
+
+
+  server.on("/v1/animation", HTTP_POST, []() {
+    // Parse the incoming JSON data
+    DynamicJsonDocument jsonDocument(400);  // Adjust size as needed
+    DeserializationError error = deserializeJson(jsonDocument, server.arg("plain"));
+
+    if (error) {
+      String response = "{\"error\": \"Error parsing JSON data\"}";
+      Serial.println(response);
+      server.send(400, "application/json", response);
+      return;
+    }
+
+    JsonObject jsonObject = jsonDocument.as<JsonObject>();
+    serializeJson(jsonObject, Serial);
+    Serial.println();
+    handleCommand(jsonObject);
+
+    // Do something with the data, e.g., send a response
+    String response = "{\"message\": \"Received JSON data successfully\"}";
+    server.send(200, "application/json", response);
+  });
 }
 
-
-void handleBody() {                       //Handler for the body path
-  if (server.hasArg("plain") == false) {  //Check if body received
-    server.send(400, "text/plain", "Body not received");
-    Serial.println("Body not received");
-    return;
-  }
-
-  String command = server.arg("plain");
-  server.send(200);
-  Serial.println("Received command: " + command);
-  handleCommand(command);
-}
-
-void handleCommand(String command) {
-  if (command == "true") {
-    Serial.println("Turn LED ON");
-    digitalWrite(LED_BUILTIN, LOW);
-  } else if (command == "false") {
-    Serial.println("Turn LED OFF");
-    digitalWrite(LED_BUILTIN, HIGH);
+void handleCommand(JsonObject jsonObject) {
+  float bpmNew = getOptionalParam(jsonObject, "BPM", -1);
+  Serial.println(bpmNew);
+  if (bpmNew != -1) {
+    Serial.print("Updated BPM: ");
+    Serial.println(bpmNew);
+    BPM = bpmNew;
   }
 }
 /* ********************************************************** */
