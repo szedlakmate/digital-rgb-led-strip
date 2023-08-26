@@ -33,8 +33,8 @@ ESP8266WebServer server(3000);
 // Pins
 #define LED_PIN D2
 
-#define NUM_LEDS 300    // total num of leds on the full strip
-#define BRIGHTNESS 120  // max: 250
+#define NUM_LEDS 300        // total num of leds on the full strip
+#define BRIGHTNESS_MAX 120  // max: 250
 #define LED_TYPE WS2812B
 #define COLOR_ORDER GRB
 
@@ -44,6 +44,7 @@ CRGB ledsPreset[NUM_LEDS];
 // Wave per miniute. 1 means it takes 60 sec to flow through each LEDs
 // Max BPM is ~10 for 300 LEDS
 float BPM = 2.0;
+int BRIGHTNESS = BRIGHTNESS_MAX;
 
 // Scales the wave's length. >1.0 means overlays the stripe. Default: 1.0
 #define WAVE_LENGTH_SCALE 1.00
@@ -52,9 +53,8 @@ CRGBPalette256 currentPalette;
 TBlendType currentBlending;
 
 static long looper = 0;
-
 // Determine delay time based on BPM
-static int delayMillis = (60000.0 * 2.0) / ((float)NUM_LEDS * BPM);
+int delayMillis = 1;
 long stopper = millis();
 
 
@@ -85,6 +85,7 @@ void loop() {
   // Serial.print("looper: ");
   // Serial.println(looper);
 
+
   FillLEDsFromPaletteColors(looper);
 
   // Web connection
@@ -92,6 +93,7 @@ void loop() {
 
   // Determine accurate sleep time
   long now = millis();
+  int delayMillis = (60000.0 * 2.0) / ((float)NUM_LEDS * BPM);
   long waitMoreMillis = max(delayMillis - now + stopper, (long int)0);
   if (waitMoreMillis == 0) {
     Serial.print("Missed [ms]:   ");
@@ -166,12 +168,19 @@ void setupWifi() {
 }
 
 void handleCommand(JsonObject jsonObject) {
-  float bpmNew = getOptionalParam(jsonObject, "BPM", -1);
+  float bpmNew = getOptionalParam(jsonObject, "BPM", -1.0);
+  float brighntessNew = getOptionalParam(jsonObject, "BRIGHTNESS", -1);
   Serial.println(bpmNew);
   if (bpmNew != -1) {
     Serial.print("Updated BPM: ");
     Serial.println(bpmNew);
     BPM = bpmNew;
+  }
+  if (brighntessNew != -1) {
+    Serial.print("Updated BRIGHTNESS: ");
+    Serial.println(brighntessNew);
+    BRIGHTNESS = brighntessNew;
+    FastLED.setBrightness(BRIGHTNESS);
   }
 }
 /* ********************************************************** */
