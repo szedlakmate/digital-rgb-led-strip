@@ -8,7 +8,7 @@
 #include <FastLED.h>
 
 // Pins
-#define LED_PIN 25  // arduino digital pin
+#define LED_PIN D2
 
 #define NUM_LEDS 300    // total num of leds on the full strip
 #define BRIGHTNESS 120  // max: 250
@@ -61,7 +61,7 @@ void loop() {
 
   // Determine accurate sleep time
   long now = millis();
-  long waitMoreMillis = max(delayMillis - now + stopper, 0);
+  long waitMoreMillis = max(delayMillis - now + stopper, (long int) 0);
   if (waitMoreMillis == 0) {
     Serial.print("Missed [ms]:   ");
     Serial.println(-(delayMillis - now + stopper));
