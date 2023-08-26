@@ -5,6 +5,29 @@
  ***************/
 
 
+/* ********************************************************** */
+// WIFI CONFIG
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+#include <ESP8266SSDP.h>
+#include <WiFiClient.h>
+#include <FS.h>  // Include the SPIFFS library
+
+// Credentials
+#if defined __has_include
+#if __has_include("credentials.h")
+#include "credentials.h"
+#else
+// if you dont have a credentials.h file you can set them manually here
+#define WIFI_SSID "Wifi SSID"
+#define WIFI_PASS "password"
+#endif
+#endif
+
+ESP8266WebServer server(3000);
+/* ********************************************************** */
+
+
 #include <FastLED.h>
 
 // Pins
@@ -40,7 +63,11 @@ void setup() {
   Serial.begin(1000000);
   Serial.println("START");
 
-  FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  // WIFI
+  setupWifi();
+
+  FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS)
+    .setCorrection(TypicalLEDStrip);
   FastLED.setBrightness(BRIGHTNESS);
 
   currentBlending = LINEARBLEND;
@@ -54,14 +81,17 @@ void setup() {
 
 void loop() {
   looper = (looper + 1) % NUM_LEDS;
-  Serial.print("looper: ");
-  Serial.println(looper);
+  // Serial.print("looper: ");
+  // Serial.println(looper);
 
   FillLEDsFromPaletteColors(looper);
 
+  // Web connection
+  server.handleClient();  // Handling of incoming requests
+
   // Determine accurate sleep time
   long now = millis();
-  long waitMoreMillis = max(delayMillis - now + stopper, (long int) 0);
+  long waitMoreMillis = max(delayMillis - now + stopper, (long int)0);
   if (waitMoreMillis == 0) {
     Serial.print("Missed [ms]:   ");
     Serial.println(-(delayMillis - now + stopper));
@@ -84,6 +114,51 @@ void FillLEDsFromPaletteColors(int looper) {
     leds[i] = ledsPreset[index % NUM_LEDS];
   }
 }
+
+
+/* ********************************************************** */
+// WIFI CONFIG
+void setupWifi() {
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WIFI_SSID, WIFI_PASS);        //Connect to the WiFi network
+  while (WiFi.status() != WL_CONNECTED) {  //Wait for connection
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nConnected to WiFi");
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());  //Print the local IP
+  server.on("/blink", handleBody);  //Associate the handler function to the path
+  server.begin();                   //Start the server
+  Serial.println("Server listening");
+  digitalWrite(LED_BUILTIN, LOW);
+}
+
+
+void handleBody() {                       //Handler for the body path
+  if (server.hasArg("plain") == false) {  //Check if body received
+    server.send(400, "text/plain", "Body not received");
+    Serial.println("Body not received");
+    return;
+  }
+
+  String command = server.arg("plain");
+  server.send(200);
+  Serial.println("Received command: " + command);
+  handleCommand(command);
+}
+
+void handleCommand(String command) {
+  if (command == "true") {
+    Serial.println("Turn LED ON");
+    digitalWrite(LED_BUILTIN, LOW);
+  } else if (command == "false") {
+    Serial.println("Turn LED OFF");
+    digitalWrite(LED_BUILTIN, HIGH);
+  }
+}
+/* ********************************************************** */
+
 
 /*******************************************************
  * REFFERENCES & EXAMPLES from unknown external source *
@@ -189,7 +264,7 @@ const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM = {
 // between the 16 explicit entries to create fifteen intermediate palette
 // entries between each pair.
 //
-// So for example, if you set the first two explicit entries of a compact 
-// palette to Green (0,255,0) and Blue (0,0,255), and then retrieved 
+// So for example, if you set the first two explicit entries of a compact
+// palette to Green (0,255,0) and Blue (0,0,255), and then retrieved
 // the first sixteen entries from the virtual palette (of 256), you'd get
 // Green, followed by a smooth gradient from green-to-blue, and then Blue.
