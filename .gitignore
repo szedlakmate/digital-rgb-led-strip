@@ -1,2 +1,3 @@
 *.~lock.*
 *.json
+/Digital_RGB_LED/credentials.h
