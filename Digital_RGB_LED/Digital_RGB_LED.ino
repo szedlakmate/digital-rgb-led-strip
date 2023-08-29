@@ -5,13 +5,35 @@
  ***************/
 
 
+/* ********************************************************** */
+// WIFI CONFIG
+#include <ESP8266WiFi.h>
+#include <ESP8266WebServer.h>
+#include <WiFiClient.h>
+#include <ArduinoJson.h>
+#include <FS.h>  // Include the SPIFFS library
+
+// Credentials
+#if defined __has_include
+#if __has_include("credentials.h")
+#include "credentials.h"
+#else
+// if you dont have a credentials.h file you can set them manually here
+#define WIFI_SSID "Wifi SSID"
+#define WIFI_PASS "password"
+#endif
+#endif
+
+ESP8266WebServer server(3000);
+/* ********************************************************** */
+
+
 #include <FastLED.h>
 
 // Pins
-#define LED_PIN 25  // arduino digital pin
+#define LED_PIN D2  // arduino digital pin
 
-#define NUM_LEDS 300    // total num of leds on the full strip
-#define BRIGHTNESS 180  // max: 250
+#define NUM_LEDS 300  // total num of leds on the full strip
 #define LED_TYPE WS2812B
 #define COLOR_ORDER GRB
 
@@ -19,13 +41,14 @@ CRGB leds[NUM_LEDS];
 
 // Wave per miniute. 1 means it takes 60 sec to flow through each LEDs
 // Max BPM is ~10 for 300 LEDS
-#define BPM 2.0
+float BPM = 2.0;
+int BRIGHTNESS = 180;  // max: 250
 
 // Scales the wave's length. >1.0 means overlays the strip. Default: 1.0
-#define WAVE_LENGTH_SCALE 2.0
+float WAVE_LENGTH_SCALE = 2.0;
 // Defines the smoothness of the animation. The higher the smoother, but can slow down the controller.
 // If the animation is lagging, the built-in LED turns on
-#define RESOLUTION 2
+int RESOLUTION = 2;
 
 CRGBPalette256 currentPalette;
 TBlendType currentBlending;
@@ -54,6 +77,9 @@ void setup() {
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
 
+  // WIFI
+  setupWifi();
+
   FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   FastLED.setBrightness(BRIGHTNESS);
 
@@ -70,6 +96,10 @@ void loop() {
     FillLEDsFromPaletteColors(looper);
     shouldUpdate = false;
   }
+
+  // Web connection
+  server.handleClient();  // Handling of incoming requests
+
 
   // Determine is refresh is needed
   long now = millis();
@@ -119,6 +149,94 @@ void FillLEDsFromPaletteColors(long colorShift) {
     }
   }
 }
+
+/* ********************************************************** */
+// Helper function to get optional parameter from JSON
+template<typename T>
+T getOptionalParam(JsonObject jsonObject, const char* paramName, T defaultValue) {
+  if (jsonObject.containsKey(paramName)) {
+    return jsonObject[paramName].as<T>();
+  }
+  return defaultValue;
+}
+// WIFI CONFIG
+void setupWifi() {
+  WiFi.mode(WIFI_STA);
+  WiFi.begin(WIFI_SSID, WIFI_PASS);        //Connect to the WiFi network
+  while (WiFi.status() != WL_CONNECTED) {  //Wait for connection
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println("\nConnected to WiFi");
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());  //Print the local IP
+  server.begin();                  //Start the server
+  Serial.println("Server listening");
+  digitalWrite(LED_BUILTIN, LOW);
+
+
+  server.on("/v1/animation", HTTP_POST, []() {
+    // Parse the incoming JSON data
+    DynamicJsonDocument jsonDocument(400);  // Adjust size as needed
+    DeserializationError error = deserializeJson(jsonDocument, server.arg("plain"));
+
+    if (error) {
+      String response = "{\"error\": \"Error parsing JSON data\"}";
+      Serial.println(response);
+      server.send(400, "application/json", response);
+      return;
+    }
+
+    JsonObject jsonObject = jsonDocument.as<JsonObject>();
+    serializeJson(jsonObject, Serial);
+    Serial.println();
+    handleCommand(jsonObject);
+
+    // Do something with the data, e.g., send a response
+    String response = "{\"message\": \"Received JSON data successfully\"}";
+    server.send(200, "application/json", response);
+  });
+}
+
+void handleCommand(JsonObject jsonObject) {
+  float bpmNew = getOptionalParam(jsonObject, "BPM", -1.0);
+  if (bpmNew != -1 && bpmNew != BPM) {
+    Serial.print("Updated BPM: ");
+    Serial.println(bpmNew);
+    BPM = bpmNew;
+    delayMillis = calculateDelayMillis();
+  }
+  int brightnessNew = getOptionalParam(jsonObject, "BRIGHTNESS", -1);
+  if (brightnessNew != -1 && brightnessNew > 0 && brightnessNew != BRIGHTNESS) {
+    Serial.print("Updated BRIGHTNESS: ");
+    Serial.println(brightnessNew);
+    BRIGHTNESS = brightnessNew;
+    FastLED.setBrightness(BRIGHTNESS);
+  }
+
+  int reversedNew = getOptionalParam(jsonObject, "REVERSED", -1);
+  if (reversedNew != -1 && reversed != (reversedNew == 1)) {
+    reversed = reversedNew == 1;
+    Serial.print("Updated reverse: ");
+    Serial.println(reversed);
+  }
+
+  int resolutionNew = getOptionalParam(jsonObject, "RESOLUTION", -1);
+  if (resolutionNew != -1 && resolutionNew > 0 && resolutionNew != RESOLUTION) {
+    Serial.print("Updated resolutionNew: ");
+    Serial.println(resolutionNew);
+    RESOLUTION = resolutionNew;
+  }
+
+    float wavelengthNew = getOptionalParam(jsonObject, "WAVE_LENGTH_SCALE", -1.0);
+  if (wavelengthNew != -1.0 && wavelengthNew > 0 && wavelengthNew != WAVE_LENGTH_SCALE) {
+    Serial.print("Updated WAVELENGTH: ");
+    Serial.println(wavelengthNew);
+    WAVE_LENGTH_SCALE = wavelengthNew;
+  }
+}
+/* ********************************************************** */
+
 
 /*******************************************************
  * REFFERENCES & EXAMPLES from unknown external source *
