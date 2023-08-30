@@ -54,8 +54,9 @@ CRGBPalette256 currentPalette;
 TBlendType currentBlending;
 
 bool reversed = false;
-bool shouldUpdate = true;
 static long looper = 0;
+bool shouldUpdate = true;
+bool connectedToNet = false;
 
 // Determine delay time based on BPM
 int calculateDelayMillis() {
@@ -75,7 +76,7 @@ void setup() {
   Serial.println(delayMillis);
 
   pinMode(LED_BUILTIN, OUTPUT);
-  digitalWrite(LED_BUILTIN, HIGH);
+  digitalWrite(LED_BUILTIN, LOW);
 
   // WIFI
   setupWifi();
@@ -96,6 +97,17 @@ void loop() {
     FillLEDsFromPaletteColors(looper);
     shouldUpdate = false;
   }
+
+  if (!connectedToNet && WiFi.status() == WL_CONNECTED) {  //Wait for connection
+    connectedToNet = true;
+    Serial.println("\nConnected to WiFi");
+    Serial.print("IP address: ");
+    Serial.println(WiFi.localIP());  //Print the local IP
+    server.begin();                  //Start the server
+    Serial.println("Server listening");
+    digitalWrite(LED_BUILTIN, HIGH);
+  }
+
 
   // Web connection
   server.handleClient();  // Handling of incoming requests
@@ -123,6 +135,7 @@ void loop() {
 
     if (delayMillis == 0) {
       Serial.println("Animation configuration reached maximum speed!");
+      digitalWrite(LED_BUILTIN, LOW);
     }
     stopper = now;
   }
@@ -162,18 +175,7 @@ T getOptionalParam(JsonObject jsonObject, const char* paramName, T defaultValue)
 // WIFI CONFIG
 void setupWifi() {
   WiFi.mode(WIFI_STA);
-  WiFi.begin(WIFI_SSID, WIFI_PASS);        //Connect to the WiFi network
-  while (WiFi.status() != WL_CONNECTED) {  //Wait for connection
-    delay(500);
-    Serial.print(".");
-  }
-  Serial.println("\nConnected to WiFi");
-  Serial.print("IP address: ");
-  Serial.println(WiFi.localIP());  //Print the local IP
-  server.begin();                  //Start the server
-  Serial.println("Server listening");
-  digitalWrite(LED_BUILTIN, LOW);
-
+  WiFi.begin(WIFI_SSID, WIFI_PASS);  //Connect to the WiFi network
 
   server.on("/v1/animation", HTTP_POST, []() {
     // Parse the incoming JSON data
@@ -228,7 +230,7 @@ void handleCommand(JsonObject jsonObject) {
     RESOLUTION = resolutionNew;
   }
 
-    float wavelengthNew = getOptionalParam(jsonObject, "WAVE_LENGTH_SCALE", -1.0);
+  float wavelengthNew = getOptionalParam(jsonObject, "WAVE_LENGTH_SCALE", -1.0);
   if (wavelengthNew != -1.0 && wavelengthNew > 0 && wavelengthNew != WAVE_LENGTH_SCALE) {
     Serial.print("Updated WAVELENGTH: ");
     Serial.println(wavelengthNew);
