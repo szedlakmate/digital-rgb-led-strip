@@ -190,8 +190,8 @@ void setupWifi() {
     }
 
     JsonObject jsonObject = jsonDocument.as<JsonObject>();
-    serializeJson(jsonObject, Serial);
-    Serial.println();
+    // serializeJson(jsonObject, Serial);
+    // Serial.println();
     handleCommand(jsonObject);
 
     // Do something with the data, e.g., send a response
@@ -203,15 +203,15 @@ void setupWifi() {
 void handleCommand(JsonObject jsonObject) {
   float bpmNew = getOptionalParam(jsonObject, "BPM", -1.0);
   if (bpmNew != -1 && bpmNew != BPM) {
-    Serial.print("Updated BPM: ");
-    Serial.println(bpmNew);
+    // Serial.print("Updated BPM: ");
+    // Serial.println(bpmNew);
     BPM = bpmNew;
     delayMillis = calculateDelayMillis();
   }
   int brightnessNew = getOptionalParam(jsonObject, "BRIGHTNESS", -1);
   if (brightnessNew != -1 && brightnessNew > 0 && brightnessNew != BRIGHTNESS) {
-    Serial.print("Updated BRIGHTNESS: ");
-    Serial.println(brightnessNew);
+    // Serial.print("Updated BRIGHTNESS: ");
+    // Serial.println(brightnessNew);
     BRIGHTNESS = brightnessNew;
     FastLED.setBrightness(BRIGHTNESS);
   }
@@ -219,21 +219,21 @@ void handleCommand(JsonObject jsonObject) {
   int reversedNew = getOptionalParam(jsonObject, "REVERSED", -1);
   if (reversedNew != -1 && reversed != (reversedNew == 1)) {
     reversed = reversedNew == 1;
-    Serial.print("Updated reverse: ");
-    Serial.println(reversed);
+    // Serial.print("Updated reverse: ");
+    // Serial.println(reversed);
   }
 
   int resolutionNew = getOptionalParam(jsonObject, "RESOLUTION", -1);
   if (resolutionNew != -1 && resolutionNew > 0 && resolutionNew != RESOLUTION) {
-    Serial.print("Updated resolutionNew: ");
-    Serial.println(resolutionNew);
+    // Serial.print("Updated resolutionNew: ");
+    // Serial.println(resolutionNew);
     RESOLUTION = resolutionNew;
   }
 
   float wavelengthNew = getOptionalParam(jsonObject, "WAVE_LENGTH_SCALE", -1.0);
   if (wavelengthNew != -1.0 && wavelengthNew > 0 && wavelengthNew != WAVE_LENGTH_SCALE) {
-    Serial.print("Updated WAVELENGTH: ");
-    Serial.println(wavelengthNew);
+    // Serial.print("Updated WAVELENGTH: ");
+    // Serial.println(wavelengthNew);
     WAVE_LENGTH_SCALE = wavelengthNew;
   }
 }
