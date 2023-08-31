@@ -178,6 +178,8 @@ void setupWifi() {
   WiFi.begin(WIFI_SSID, WIFI_PASS);  //Connect to the WiFi network
 
   server.on("/v1/animation", HTTP_POST, []() {
+    server.sendHeader("Connection", "Keep-Alive");  // Enable Keep-Alive header
+
     // Parse the incoming JSON data
     DynamicJsonDocument jsonDocument(400);  // Adjust size as needed
     DeserializationError error = deserializeJson(jsonDocument, server.arg("plain"));
