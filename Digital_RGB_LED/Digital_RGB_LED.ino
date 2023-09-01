@@ -129,7 +129,7 @@ void loop() {
       Serial.print("! Missed [ms]:   ");
       Serial.println(missedMillis);
       digitalWrite(LED_BUILTIN, LOW);
-    } else {
+    } else if (connectedToNet) {
       digitalWrite(LED_BUILTIN, HIGH);
     }
 
