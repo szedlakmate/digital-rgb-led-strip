@@ -211,7 +211,7 @@ void handleCommand(JsonObject jsonObject) {
     delayMillis = calculateDelayMillis();
   }
   int brightnessNew = getOptionalParam(jsonObject, "BRIGHTNESS", -1);
-  if (brightnessNew != -1 && brightnessNew > 0 && brightnessNew != BRIGHTNESS) {
+  if (brightnessNew != -1 && brightnessNew >= 0 && brightnessNew != BRIGHTNESS) {
     // Serial.print("Updated BRIGHTNESS: ");
     // Serial.println(brightnessNew);
     BRIGHTNESS = brightnessNew;
