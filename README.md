@@ -19,13 +19,17 @@ This animation consists a static pattern what is sliding infinitely on the LED s
 - [Animation doubled](https://github.com/szedlakmate/digital-rgb-led-strip/tree/double_stripes) for symmetrical fun
 - [Knobs](https://github.com/szedlakmate/digital-rgb-led-strip/blob/potmeter-3) controlling animation parameters: brightness / speed / length of the pattern
 - [Bluetooth](https://github.com/szedlakmate/digital-rgb-led-strip/tree/bluetooth) based control, similarly to the knob based version
-- HTTP request based control // TODO: add link
-- websocket based control // TODO: add link
+- [HTTP request based control](https://github.com/szedlakmate/digital-rgb-led-strip/tree/esp-8266)
+- websocket based control
 
-// TODO: add images
+
+<img src="https://github.com/szedlakmate/digital-rgb-led-strip/assets/18262723/e38f261d-c5ab-4a61-8aa1-b6269f57a19f" width="310" height="410">
+
+<img src="https://github.com/szedlakmate/digital-rgb-led-strip/assets/18262723/20f23b67-a6ae-4033-ac92-812d13a92f24" width="310" height="410">
+
 
 ### Sunset lamp
 
 This version is a co-production with Rossana Ribeiro. In this project we built a a wall lamp with a slow smooth animation, imitating the lights and shades of sunset.
 
-// TODO: add images
+<img src="https://github.com/szedlakmate/digital-rgb-led-strip/assets/18262723/78d88a44-8ebf-4a6c-90e3-aeca3c72e1b1" width="420" height="340">
