@@ -1,0 +1,25 @@
+name: Arduino Lint
+
+on:
+  pull_request:
+    paths:
+      - '**.ino'
+      - '**.cpp'
+      - '**.h'
+      - 'library.properties'
+      - '.github/workflows/arduino-lint.yml'
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Arduino Lint
+        uses: arduino/arduino-lint-action@v1
+        with:
+          compliance: strict
+          library-manager: true
+          additional-arduino-lib-paths: |
+            ./external-libraries
