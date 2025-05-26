@@ -1,7 +1,6 @@
 # Addressable LED strip animations
 
-![Build](https://github.com/szedlakmate/digital-rgb-led-strip/actions/workflows/build.yml/badge.svg)
-
+[![Build (master)](https://github.com/szedlakmate/digital-rgb-led-strip/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/szedlakmate/digital-rgb-led-strip/actions/workflows/build.yml)
 
 ## Description
 
