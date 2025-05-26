@@ -1,5 +1,8 @@
 # Addressable LED strip animations
 
+![Build](https://github.com/szedlakmate/digital-rgb-led-strip/actions/workflows/build.yml/badge.svg)
+
+
 ## Description
 
 In this project I controls a digital / addressable LED strip to handle different animations
