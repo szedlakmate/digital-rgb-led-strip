@@ -7,7 +7,6 @@
 #define LED_PIN 31  // arduino digital pin
 #define NUM_LEDS 300    // total num of leds blocks on the strip
 #define BRIGHTNESS 150  // max: 250
-#define LED_TYPE WS2812B
 #define COLOR_ORDER GRB
 
 // Animation parameters
