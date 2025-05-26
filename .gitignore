@@ -1,3 +1,4 @@
 *.~lock.*
 *.json
 /Digital_RGB_LED/credentials.h
+/.idea/editor.xml
