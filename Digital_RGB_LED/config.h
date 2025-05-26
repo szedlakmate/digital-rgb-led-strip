@@ -1,3 +1,8 @@
+// Main configuration file for the project.
+// To override any settings locally, create a `config_override.h` file in the same directory.
+// Only include the parameters you want to change in `config_override.h`.
+// This allows you to keep local changes out of version control and maintain a clean git history.
+
 #ifndef CONFIG_H
 #define CONFIG_H
 
@@ -19,5 +24,12 @@
 extern CRGB leds[NUM_LEDS];
 extern CRGBPalette256 currentPalette;
 extern TBlendType currentBlending;
+
+// --- Add this block at the end ---
+#ifdef __has_include
+#  if __has_include("config_override.h")
+#    include "config_override.h"
+#  endif
+#endif
 
 #endif // CONFIG_H
