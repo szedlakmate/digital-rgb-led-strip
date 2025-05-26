@@ -21,5 +21,6 @@ jobs:
         uses: arduino/arduino-lint-action@v2
         with:
           path: Digital_RGB_LED
-          compliance: specification
+          compliance: strict
           project-type: sketch
+          verbose: true
