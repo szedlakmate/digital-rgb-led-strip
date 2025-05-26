@@ -51,6 +51,7 @@ void loop() {
     int missedFrames = expectedLooper - looper - 1;
     looper = expectedLooper;
     shouldUpdate = true;
+
     if (missedFrames > 0) {
       Serial.print("[ANIMATION] Skipped frames: ");
       Serial.println(missedFrames);
