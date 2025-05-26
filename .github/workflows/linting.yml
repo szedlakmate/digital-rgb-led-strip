@@ -1,26 +1,34 @@
-name: Arduino Lint
+name: Build Arduino Sketch
 
 on:
-  pull_request:
+  push:
     paths:
       - '**.ino'
       - '**.cpp'
       - '**.h'
-      - 'library.properties'
-      - '.github/workflows/arduino-lint.yml'
+      - '.github/workflows/**'
+  pull_request:
 
 jobs:
-  arduino-lint:
+  build:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run Arduino Lint
-        uses: arduino/arduino-lint-action@v2
-        with:
-          path: Digital_RGB_LED
-          compliance: strict
-          project-type: sketch
-          verbose: true
+      - name: Set up Arduino CLI
+        uses: arduino/setup-arduino-cli@v2
+
+      - name: Install board platform
+        run: |
+          arduino-cli core update-index
+          arduino-cli core install arduino:avr
+
+      - name: Install FastLED library
+        run: arduino-cli lib install "FastLED"
+
+      - name: Compile Sketch (Mega 2560)
+        run: |
+          arduino-cli compile --fqbn arduino:avr:mega \
+            ./Digital_RGB_LED
