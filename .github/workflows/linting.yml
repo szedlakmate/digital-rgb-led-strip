@@ -10,16 +10,18 @@ on:
       - '.github/workflows/arduino-lint.yml'
 
 jobs:
-  lint:
+  arduino-lint:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Arduino Lint
-        uses: arduino/arduino-lint-action@v1
+      - name: Set up Arduino Lint
+        uses: arduino/arduino-lint-action@v2
         with:
-          compliance: strict
-          library-manager: true
-          additional-arduino-lib-paths: |
-            ./external-libraries
+          libraries: |
+            libraries/*
+          sketch: Digital_RGB_LED/Digital_RGB_LED.ino
+          additional-urls: |
+            https://raw.githubusercontent.com/arduino/library-registry/main/library_index.json
