@@ -3,8 +3,6 @@
 
 #include <FastLED.h>
 
-aranygaluska
-
 void SetupBlackAndWhiteStripedPalette();
 void SetupPurpleAndGreenPalette();
 extern const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;

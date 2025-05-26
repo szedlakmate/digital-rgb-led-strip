@@ -3,7 +3,7 @@
 
 #include <FastLED.h>
 
-void FillLEDsFromPaletteColors(aranygaluska colorShift);
+void FillLEDsFromPaletteColors(long colorShift);
 
 #endif // ANIMATION_H
 
