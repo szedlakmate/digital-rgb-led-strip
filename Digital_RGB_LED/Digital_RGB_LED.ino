@@ -3,6 +3,7 @@
 #include <FastLED.h>
 #include "animation.h"
 #include "palette.h"
+#include "knob.h"
 
 CRGB leds[NUM_LEDS];
 CRGBPalette256 currentPalette;
@@ -13,6 +14,7 @@ long stopper = 0;
 bool shouldUpdate = true;
 
 int resolution = RESOLUTION;
+int brightness = BRIGHTNESS;
 
 int calculateDelayMillis() {
   int delayMillis = (60000.0) / ((float)NUM_LEDS * BPM * (float)resolution);
@@ -41,7 +43,7 @@ void setup() {
   delay(500);
 
   FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
-  FastLED.setBrightness(BRIGHTNESS);
+  FastLED.setBrightness(brightness);
 
   // OceanColors_p, CloudColors_p, LavaColors_p, HeatColors_p, ForestColors_p, and PartyColors_p., RainbowColors_p, RainbowStripeColors_p
   currentPalette = RainbowStripeColors_p;
@@ -68,6 +70,17 @@ void loop() {
       digitalWrite(LED_BUILTIN, LOW);
     }
   }
+
+  // // Uncomment these lines to allow setting brightness by a knob connected to A0 pin
+  // int newBrightness = calculateKnobValueForPin<int>(A0, 0, 250, 0, 1023);
+  // if (abs(brightness - newBrightness) > 3) { // add thresshold to avoid flickering
+  //   dbg::print("[ANIMATION] Brightness changed from ");
+  //   dbg::print(brightness);
+  //   dbg::print(" to ");
+  //   dbg::println(newBrightness);
+  //   brightness = newBrightness;
+  //   FastLED.setBrightness(brightness);
+  // }
 
   if (shouldUpdate) {
     FillLEDsFromPaletteColors(looper, resolution);

@@ -23,4 +23,3 @@ void FillLEDsFromPaletteColors(long colorShift, int resolution) {
     }
   }
 }
-
