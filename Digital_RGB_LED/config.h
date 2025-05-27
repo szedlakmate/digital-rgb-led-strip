@@ -21,6 +21,9 @@
 #define RESOLUTION 1
 #define REVERSED false
 
+// Debug flag
+#define DEBUG false
+
 extern CRGB leds[NUM_LEDS];
 extern CRGBPalette256 currentPalette;
 extern TBlendType currentBlending;
