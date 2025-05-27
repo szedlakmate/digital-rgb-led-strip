@@ -12,12 +12,21 @@ long stopper = 0;
 bool shouldUpdate = true;
 
 int calculateDelayMillis() {
-  return (60000.0) / ((float)NUM_LEDS * BPM * RESOLUTION);
+  int delayMillis = (60000.0) / ((float)NUM_LEDS * BPM * RESOLUTION);
+  if (delayMillis == 0) {
+    Serial.println("Animation configuration reached maximum speed!");
+    delayMillis = 1;
+  }
+  return delayMillis;
 }
 
 int delayMillis = calculateDelayMillis();
 
 void setup() {
+  if (DEBUG) {
+    Serial.begin(115200);
+  }
+
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
   Serial.println("\n\nSTART");
@@ -25,12 +34,7 @@ void setup() {
   Serial.println("delayMillis:  ");
   Serial.println(delayMillis);
 
-  if (delayMillis == 0) {
-    Serial.println("Animation configuration reached maximum speed!");
-  }
-  
   delay(500);
-  digitalWrite(LED_BUILTIN, LOW);
 
   FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   FastLED.setBrightness(BRIGHTNESS);
@@ -40,7 +44,6 @@ void setup() {
   stopper = millis();
   looper = 0;
   shouldUpdate = true;
-  FastLED.show();
 }
 
 void loop() {
@@ -66,6 +69,4 @@ void loop() {
     FastLED.show();
     shouldUpdate = false;
   }
-
-  delay(1);  // Small sleep to reduce CPU usage
 }
