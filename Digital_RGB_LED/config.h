@@ -22,7 +22,7 @@
 #define REVERSED false
 
 // Debug flag
-#define DEBUG false
+#define DEBUG 0
 
 extern CRGB leds[NUM_LEDS];
 extern CRGBPalette256 currentPalette;
