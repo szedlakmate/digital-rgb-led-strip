@@ -55,7 +55,6 @@ void setup() {
 void loop() {
   long now = millis();
   long expectedLooperDiff = (now - stopper) / delayMillis;
-  stopper = now;
 
   if (expectedLooperDiff > 0) {
     int missedFrames = expectedLooperDiff - 1;
@@ -66,14 +65,6 @@ void loop() {
       Serial.print("[ANIMATION] Skipped frames: ");
       Serial.println(missedFrames);
       digitalWrite(LED_BUILTIN, HIGH);
-      if (resolution > 1 && resolution + missedFrames > 3) {
-        Serial.print("[ANIMATION] Too many missed frames, reducing resolution from ");
-        Serial.println(resolution);
-        resolution--;
-        delayMillis = calculateDelayMillis();
-        Serial.print("[ANIMATION] New resolution: ");
-        Serial.println(resolution);
-      }
     } else {
       digitalWrite(LED_BUILTIN, LOW);
     }
@@ -82,6 +73,7 @@ void loop() {
   if (shouldUpdate) {
     FillLEDsFromPaletteColors(looper, resolution);
     FastLED.show();
+    stopper = now;
     shouldUpdate = false;
   }
 }
