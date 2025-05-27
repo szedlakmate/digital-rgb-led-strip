@@ -9,6 +9,11 @@ CRGB leds[NUM_LEDS];
 CRGBPalette256 currentPalette;
 TBlendType currentBlending;
 
+// Palette array and index definitions
+const TProgmemRGBPalette16* const* gPalettes = PREDEFINED_PALETTES;
+const uint8_t gPaletteCount = PREDEFINED_PALETTES_COUNT;
+uint8_t gPaletteIndex = PALETTE_INDEX;
+
 static long looper = 0;
 long stopper = 0;
 bool shouldUpdate = true;
@@ -29,6 +34,7 @@ int calculateDelayMillis() {
 
 int delayMillis = calculateDelayMillis();
 
+
 void setup() {
   dbg::begin();
 
@@ -44,11 +50,17 @@ void setup() {
 
   delay(500);
 
+  uint8_t sel = (PALETTE_INDEX < PREDEFINED_PALETTES_COUNT)
+                  ? PALETTE_INDEX
+                  : 0;
+  currentPalette = *(PREDEFINED_PALETTES[sel]);
+
   FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   FastLED.setBrightness(brightness);
 
-  // OceanColors_p, CloudColors_p, LavaColors_p, HeatColors_p, ForestColors_p, and PartyColors_p., RainbowColors_p, RainbowStripeColors_p
-  currentPalette = RainbowStripeColors_p;
+  // Set currentPalette from palette array and index
+  if (gPaletteIndex >= gPaletteCount) gPaletteIndex = 0;
+  currentPalette = CRGBPalette16(*gPalettes[gPaletteIndex]);
 
   stopper = millis();
   looper = 0;
@@ -91,7 +103,7 @@ void loop() {
 }
 
 void brightnessByKnob() {
-  int newBrightness = calculateKnobValueForPin<int>(A0, 1, 250, 0, 1023);
+  int newBrightness = calculateKnobValueForPin<int>(A0, 1, 255, 0, 1023);
   if (brightness != newBrightness) {
     dbg::print("[ANIMATION] Brightness changed from ");
     dbg::print(brightness);
