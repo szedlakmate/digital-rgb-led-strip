@@ -54,18 +54,19 @@ void setup() {
 
 void loop() {
   long now = millis();
-  long expectedLooper = (now - stopper) / delayMillis;
+  long expectedLooperDiff = (now - stopper) / delayMillis;
+  stopper = now;
 
-  if (expectedLooper > looper) {
-    int missedFrames = expectedLooper - looper - 1;
-    looper = expectedLooper;
+  if (expectedLooperDiff > 0) {
+    int missedFrames = expectedLooperDiff - 1;
+    looper += expectedLooperDiff;
     shouldUpdate = true;
 
     if (missedFrames > 0) {
       Serial.print("[ANIMATION] Skipped frames: ");
       Serial.println(missedFrames);
       digitalWrite(LED_BUILTIN, HIGH);
-      if (resolution > 1 && resolution + missedFrames > 3 ) {
+      if (resolution > 1 && resolution + missedFrames > 3) {
         Serial.print("[ANIMATION] Too many missed frames, reducing resolution from ");
         Serial.println(resolution);
         resolution--;
