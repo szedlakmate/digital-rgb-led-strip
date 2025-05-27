@@ -15,9 +15,10 @@ bool shouldUpdate = true;
 
 int resolution = RESOLUTION;
 int brightness = BRIGHTNESS;
+float bpm = BPM;
 
 int calculateDelayMillis() {
-  int delayMillis = (60000.0) / ((float)NUM_LEDS * BPM * (float)resolution);
+  int delayMillis = (60000.0) / ((float)NUM_LEDS * bpm * (float)resolution);
   if (delayMillis == 0) {
     dbg::println("Animation configuration reached maximum speed!");
     delayMillis = 1;
@@ -81,6 +82,18 @@ void loop() {
   //   brightness = newBrightness;
   //   FastLED.setBrightness(brightness);
   // }
+
+  // // Uncomment these lines to allow setting BPM by a knob connected to A0 pin
+  // float newBPM = calculateKnobValueForPin<float>(A0, 0.01, 25.0, 0, 1023);
+  // if (abs(bpm - newBPM) > 0.6) {  // add thresshold to avoid flickering
+  //   dbg::print("[ANIMATION] BPM changed from ");
+  //   dbg::print(bpm);
+  //   dbg::print(" to ");
+  //   dbg::println(newBPM);
+  //   bpm = newBPM;
+  //   delayMillis = calculateDelayMillis();
+  // }
+
 
   if (shouldUpdate) {
     FillLEDsFromPaletteColors(looper, resolution);
