@@ -1,3 +1,4 @@
+#include "debug.h"
 #include "config.h"
 #include <FastLED.h>
 #include "animation.h"
@@ -16,7 +17,7 @@ int resolution = RESOLUTION;
 int calculateDelayMillis() {
   int delayMillis = (60000.0) / ((float)NUM_LEDS * BPM * (float)resolution);
   if (delayMillis == 0) {
-    Serial.println("Animation configuration reached maximum speed!");
+    dbg::println("Animation configuration reached maximum speed!");
     delayMillis = 1;
   }
   return delayMillis;
@@ -25,19 +26,17 @@ int calculateDelayMillis() {
 int delayMillis = calculateDelayMillis();
 
 void setup() {
-  if (DEBUG) {
-    Serial.begin(115200);
-  }
+  dbg::begin();
 
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
-  Serial.println("\n\nSTART");
+  dbg::println("\n\nSTART");
 
-  Serial.println("Resolution:  ");
-  Serial.println(RESOLUTION);
+  dbg::println("Resolution:  ");
+  dbg::println(RESOLUTION);
 
-  Serial.println("delayMillis:  ");
-  Serial.println(delayMillis);
+  dbg::println("delayMillis:  ");
+  dbg::println(delayMillis);
 
   delay(500);
 
@@ -62,8 +61,8 @@ void loop() {
     shouldUpdate = true;
 
     if (missedFrames > 0) {
-      Serial.print("[ANIMATION] Skipped frames: ");
-      Serial.println(missedFrames);
+      dbg::print("[ANIMATION] Skipped frames: ");
+      dbg::println(missedFrames);
       digitalWrite(LED_BUILTIN, HIGH);
     } else {
       digitalWrite(LED_BUILTIN, LOW);
