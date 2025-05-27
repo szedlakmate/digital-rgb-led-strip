@@ -3,7 +3,6 @@
 
 #include <FastLED.h>
 
-void FillLEDsFromPaletteColors(long colorShift, int resolution);
+void FillLEDsFromPaletteColors(long colorShift, int resolution, float waveLengthScale);
 
-#endif // ANIMATION_H
-
+#endif  // ANIMATION_H

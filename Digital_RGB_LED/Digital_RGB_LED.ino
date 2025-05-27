@@ -15,6 +15,7 @@ bool shouldUpdate = true;
 
 int resolution = RESOLUTION;
 int brightness = BRIGHTNESS;
+float waveLengthScale = WAVE_LENGTH_SCALE;
 float bpm = BPM;
 
 int calculateDelayMillis() {
@@ -72,33 +73,54 @@ void loop() {
     }
   }
 
-  // // Uncomment these lines to allow setting brightness by a knob connected to A0 pin
-  // int newBrightness = calculateKnobValueForPin<int>(A0, 0, 250, 0, 1023);
-  // if (abs(brightness - newBrightness) > 3) { // add thresshold to avoid flickering
-  //   dbg::print("[ANIMATION] Brightness changed from ");
-  //   dbg::print(brightness);
-  //   dbg::print(" to ");
-  //   dbg::println(newBrightness);
-  //   brightness = newBrightness;
-  //   FastLED.setBrightness(brightness);
-  // }
+  // Allow setting brightness by a knob connected to A0 pin
+  // brightnessByKnob();
 
-  // // Uncomment these lines to allow setting BPM by a knob connected to A0 pin
-  // float newBPM = calculateKnobValueForPin<float>(A0, 0.01, 25.0, 0, 1023);
-  // if (abs(bpm - newBPM) > 0.6) {  // add thresshold to avoid flickering
-  //   dbg::print("[ANIMATION] BPM changed from ");
-  //   dbg::print(bpm);
-  //   dbg::print(" to ");
-  //   dbg::println(newBPM);
-  //   bpm = newBPM;
-  //   delayMillis = calculateDelayMillis();
-  // }
+  // Allow setting BPM by a knob connected to A0 pin
+  // bpmByKnob();
 
+  // Allow setting wave length scale by a knob connected to A0 pin
+  // waveLengthByKnob();
 
   if (shouldUpdate) {
-    FillLEDsFromPaletteColors(looper, resolution);
+    FillLEDsFromPaletteColors(looper, resolution, waveLengthScale);
     FastLED.show();
     stopper = now;
     shouldUpdate = false;
+  }
+}
+
+void brightnessByKnob() {
+  int newBrightness = calculateKnobValueForPin<int>(A0, 1, 250, 0, 1023);
+  if (brightness != newBrightness) {
+    dbg::print("[ANIMATION] Brightness changed from ");
+    dbg::print(brightness);
+    dbg::print(" to ");
+    dbg::println(newBrightness);
+    brightness = newBrightness;
+    FastLED.setBrightness(brightness);
+  }
+}
+
+void bpmByKnob() {
+  float newBPM = calculateKnobValueForPin<float>(A0, 0.01, 25.0, 0, 1023);
+  if (abs(bpm - newBPM) > 0.6) {  // add threshold to avoid flickering
+    dbg::print("[ANIMATION] BPM changed from ");
+    dbg::print(bpm);
+    dbg::print(" to ");
+    dbg::println(newBPM);
+    bpm = newBPM;
+    delayMillis = calculateDelayMillis();
+  }
+}
+
+void waveLengthByKnob() {
+  float newWaveLengthScale = calculateKnobValueForPin<float>(A0, 0.01, 5.0, 0, 1023);
+  if (abs(waveLengthScale - newWaveLengthScale) > 0.075) {  // add threshold to avoid flickering
+    dbg::print("[ANIMATION] Wave length scale changed from ");
+    dbg::print(waveLengthScale);
+    dbg::print(" to ");
+    dbg::println(newWaveLengthScale);
+    waveLengthScale = newWaveLengthScale;
   }
 }

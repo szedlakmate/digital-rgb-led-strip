@@ -42,4 +42,3 @@ const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM = {
   CRGB::Black,
   CRGB::Black
 };
-

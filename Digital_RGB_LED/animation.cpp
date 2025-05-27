@@ -3,14 +3,14 @@
 #include <FastLED.h>
 #include "palette.h"
 
-void FillLEDsFromPaletteColors(long colorShift, int resolution) {
+void FillLEDsFromPaletteColors(long colorShift, int resolution, float waveLengthScale) {
   for (int i = 0; i < NUM_LEDS; i++) {
     int index = i;
     if (REVERSED) {
       index = NUM_LEDS - i - 1;
     }
 
-    long colorIndex = ((long)i * (long)256) / (float)WAVE_LENGTH_SCALE / ((long)NUM_LEDS) + colorShift / (long)resolution;
+    long colorIndex = ((long)i * (long)256) / waveLengthScale / ((long)NUM_LEDS) + colorShift / (long)resolution;
 
     if (resolution == 1) {
       leds[index] = ColorFromPalette(currentPalette, colorIndex + colorShift, BRIGHTNESS, currentBlending);

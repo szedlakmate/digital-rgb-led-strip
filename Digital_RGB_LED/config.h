@@ -9,7 +9,7 @@
 #include <FastLED.h>
 
 // Pins
-#define LED_PIN 31  // arduino digital pin
+#define LED_PIN 31      // arduino digital pin
 #define NUM_LEDS 300    // total num of leds blocks on the strip
 #define BRIGHTNESS 220  // max: 250
 #define LED_TYPE WS2812B
@@ -30,9 +30,9 @@ extern TBlendType currentBlending;
 
 // --- Add this block at the end ---
 #ifdef __has_include
-#  if __has_include("config_override.h")
-#    include "config_override.h"
-#  endif
+#if __has_include("config_override.h")
+#include "config_override.h"
+#endif
 #endif
 
-#endif // CONFIG_H
+#endif  // CONFIG_H
