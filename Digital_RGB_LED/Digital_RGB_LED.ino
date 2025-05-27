@@ -11,8 +11,10 @@ static long looper = 0;
 long stopper = 0;
 bool shouldUpdate = true;
 
+int resolution = RESOLUTION;
+
 int calculateDelayMillis() {
-  int delayMillis = (60000.0) / ((float)NUM_LEDS * BPM * RESOLUTION);
+  int delayMillis = (60000.0) / ((float)NUM_LEDS * BPM * (float)resolution);
   if (delayMillis == 0) {
     Serial.println("Animation configuration reached maximum speed!");
     delayMillis = 1;
@@ -31,6 +33,9 @@ void setup() {
   digitalWrite(LED_BUILTIN, HIGH);
   Serial.println("\n\nSTART");
 
+  Serial.println("Resolution:  ");
+  Serial.println(RESOLUTION);
+
   Serial.println("delayMillis:  ");
   Serial.println(delayMillis);
 
@@ -39,7 +44,8 @@ void setup() {
   FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
   FastLED.setBrightness(BRIGHTNESS);
 
-  currentPalette = RainbowColors_p;
+  // OceanColors_p, CloudColors_p, LavaColors_p, HeatColors_p, ForestColors_p, and PartyColors_p., RainbowColors_p, RainbowStripeColors_p
+  currentPalette = RainbowStripeColors_p;
 
   stopper = millis();
   looper = 0;
@@ -59,13 +65,21 @@ void loop() {
       Serial.print("[ANIMATION] Skipped frames: ");
       Serial.println(missedFrames);
       digitalWrite(LED_BUILTIN, HIGH);
+      if (resolution > 1 && resolution + missedFrames > 3 ) {
+        Serial.print("[ANIMATION] Too many missed frames, reducing resolution from ");
+        Serial.println(resolution);
+        resolution--;
+        delayMillis = calculateDelayMillis();
+        Serial.print("[ANIMATION] New resolution: ");
+        Serial.println(resolution);
+      }
     } else {
       digitalWrite(LED_BUILTIN, LOW);
     }
   }
 
   if (shouldUpdate) {
-    FillLEDsFromPaletteColors(looper);
+    FillLEDsFromPaletteColors(looper, resolution);
     FastLED.show();
     shouldUpdate = false;
   }
