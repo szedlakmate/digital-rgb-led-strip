@@ -7,5 +7,4 @@ void SetupBlackAndWhiteStripedPalette();
 void SetupPurpleAndGreenPalette();
 extern const TProgmemPalette16 myRedWhiteBluePalette_p PROGMEM;
 
-#endif // PALETTE_H
-
+#endif  // PALETTE_H
