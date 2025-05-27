@@ -5,6 +5,9 @@
 #include "palette.h"
 #include "knob.h"
 
+#define MAX_KEYPAD_BUTTONS 4
+static KeypadDebounceState keypadStates[MAX_KEYPAD_BUTTONS];
+
 CRGB leds[NUM_LEDS];
 CRGBPalette256 currentPalette;
 TBlendType currentBlending;
@@ -36,32 +39,40 @@ int delayMillis = calculateDelayMillis();
 
 
 void setup() {
+  // Serial init
   dbg::begin();
 
+  // Built-in LED init
   pinMode(LED_BUILTIN, OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
   dbg::println("\n\nSTART");
 
+  // Membrane buttons init
+  for (size_t i = 0; i < keypadButtonCount; ++i) {
+    pinMode(keypadButtons[i].pin, keypadButtons[i].activeLow ? INPUT_PULLUP : INPUT);
+  }
+
   dbg::println("Resolution:  ");
   dbg::println(RESOLUTION);
-
   dbg::println("delayMillis:  ");
   dbg::println(delayMillis);
 
   delay(500);
 
+  // Palette setup
   uint8_t sel = (PALETTE_INDEX < PREDEFINED_PALETTES_COUNT)
                   ? PALETTE_INDEX
                   : 0;
   currentPalette = *(PREDEFINED_PALETTES[sel]);
-
-  FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
-  FastLED.setBrightness(brightness);
-
   // Set currentPalette from palette array and index
   if (gPaletteIndex >= gPaletteCount) gPaletteIndex = 0;
   currentPalette = CRGBPalette16(*gPalettes[gPaletteIndex]);
 
+  // LED init
+  FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  FastLED.setBrightness(brightness);
+
+  // Loop init
   stopper = millis();
   looper = 0;
   shouldUpdate = true;
@@ -94,6 +105,9 @@ void loop() {
   // Allow setting wave length scale by a knob connected to A0 pin
   // waveLengthByKnob();
 
+  // Allow membrane buttons
+  // switchpaletteByMembraneButtons();
+
   if (shouldUpdate) {
     FillLEDsFromPaletteColors(looper, resolution, waveLengthScale);
     FastLED.show();
@@ -104,7 +118,7 @@ void loop() {
 
 void brightnessByKnob() {
   int newBrightness = calculateKnobValueForPin<int>(A0, 1, 255, 0, 1023);
-  if (brightness != newBrightness) {
+  if (abs(brightness - newBrightness) > 5) {
     dbg::print("[ANIMATION] Brightness changed from ");
     dbg::print(brightness);
     dbg::print(" to ");
@@ -134,5 +148,32 @@ void waveLengthByKnob() {
     dbg::print(" to ");
     dbg::println(newWaveLengthScale);
     waveLengthScale = newWaveLengthScale;
+  }
+}
+
+void switchpaletteByMembraneButtons() {
+  char key = readDebouncedKeypadButton(keypadButtons, keypadStates, keypadButtonCount);
+  if (key) {
+    dbg::print("[KEYPAD] Debounced button pressed: ");
+    dbg::println(key);
+    switch (key) {
+      case 'U':
+        gPaletteIndex = (gPaletteIndex + 1) % gPaletteCount;
+        currentPalette = CRGBPalette16(*gPalettes[gPaletteIndex]);
+        dbg::print("[PALETTE] Switched to index ");
+        dbg::println(gPaletteIndex);
+        break;
+      case 'D':
+        gPaletteIndex = (gPaletteIndex == 0) ? (gPaletteCount - 1) : (gPaletteIndex - 1);
+        currentPalette = CRGBPalette16(*gPalettes[gPaletteIndex]);
+        dbg::print("[PALETTE] Switched to index ");
+        dbg::println(gPaletteIndex);
+        break;
+      default:
+        dbg::print("[KEYPAD] Unknown button: ");
+        dbg::println(key);
+    }
+    delayMillis = calculateDelayMillis();
+    shouldUpdate = true;
   }
 }

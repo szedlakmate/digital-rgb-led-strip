@@ -5,6 +5,7 @@
 extern CRGBPalette256 currentPalette;
 
 
+// keep in sync with `PREDEFINED_PALETTES_COUNT`
 const TProgmemRGBPalette16* const PREDEFINED_PALETTES[] = {
   &OceanColors_p,
   &CloudColors_p,
