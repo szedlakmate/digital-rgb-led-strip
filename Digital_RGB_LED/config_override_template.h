@@ -13,4 +13,7 @@
 #define RESOLUTION 1
 #define REVERSED false
 
+#undef  DEBUG
+#define DEBUG 1
+
 #endif // CONFIG_OVERRIDE_H
