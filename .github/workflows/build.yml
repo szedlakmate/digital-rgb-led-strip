@@ -24,8 +24,10 @@ jobs:
           arduino-cli core update-index
           arduino-cli core install arduino:avr
 
-      - name: Install FastLED library
-        run: arduino-cli lib install "FastLED"
+      - name: Install libraries
+        run: |
+          arduino-cli lib install "FastLED"
+          arduino-cli lib install "NewPing"
 
       - name: Compile Sketch (Mega 2560)
         run: |
