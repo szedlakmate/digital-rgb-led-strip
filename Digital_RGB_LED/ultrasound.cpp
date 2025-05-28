@@ -1,5 +1,8 @@
+#include "debug.h"
 #include "ultrasound.h"
 #include "config.h"
+
+#if defined(US_TRIG_PIN) && defined(US_ECHO_PIN)
 
 constexpr unsigned long MIN_PERIOD_MS = 60;   // sensor spec
 constexpr unsigned long MAX_ECHO_US = 30000;  // 5 m timeout
@@ -16,6 +19,7 @@ static float last_mm = 0;
 static bool fresh = false;
 
 void ultrasoundSetup() {
+  dbg::println("Setup ultrasound device");
   pinMode(US_TRIG_PIN, OUTPUT);
   pinMode(US_ECHO_PIN, INPUT);
   digitalWrite(US_TRIG_PIN, LOW);
@@ -75,3 +79,5 @@ float ultrasoundRead_mm() {
   fresh = false;
   return last_mm;
 }
+
+#endif  // pins defined

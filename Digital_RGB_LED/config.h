@@ -12,8 +12,9 @@
 /* ──────────── Hardware pins ──────────── */
 #define LED_PIN 31      // Arduino digital pin
 #define NUM_LEDS 300    // total LEDs on the strip
-#define US_TRIG_PIN 7
-#define US_ECHO_PIN 8
+// If defined, ultrasound measurement will be used
+// #define US_TRIG_PIN 7  
+// #define US_ECHO_PIN 8
 
 /* ────────── LED configuration ────────── */
 #define LED_TYPE WS2812B

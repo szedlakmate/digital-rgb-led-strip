@@ -49,7 +49,7 @@ void setup() {
   dbg::println("delayMillis:  ");
   dbg::println(delayMillis);
 
-  ultrasoundSetup();
+  ultrasoundSetup();  // If pins are not set, it does not execute anything
 
   delay(500);
 
@@ -71,7 +71,7 @@ void setup() {
 }
 
 void loop() {
-  handleUltrasound();
+  handleUltrasound();  // If pins are not set, this function does nothing
 
   long now = millis();
   long expectedLooperDiff = (now - stopper) / delayMillis;
@@ -143,6 +143,7 @@ void waveLengthByKnob() {
 }
 
 void handleUltrasound() {
+  // If pins are not set, this function does nothing
   ultrasoundUpdate();
 
   if (ultrasoundHasReading()) {  // non-blocking check
@@ -154,7 +155,7 @@ void handleUltrasound() {
     int newBright = constrain(
       map((int)mm, 30, 800, 255, 50), 50, 255);
 
-    if (abs(newBright - brightness) > 5 && mm < 1000) { // ensure that measuers out of the "useful" range are not consumed
+    if (abs(newBright - brightness) > 5 && mm < 1000) {  // ensure that measuers out of the "useful" range are not consumed
       brightness = newBright;
       FastLED.setBrightness(brightness);
     }
