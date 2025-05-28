@@ -16,7 +16,7 @@ const uint8_t gPaletteCount = PREDEFINED_PALETTES_COUNT;
 uint8_t gPaletteIndex = PALETTE_INDEX;
 
 static long looper = 0;
-long stopper = 0;
+long stopper = millis();
 bool shouldUpdate = true;
 
 int resolution = RESOLUTION;
@@ -65,9 +65,7 @@ void setup() {
   if (gPaletteIndex >= gPaletteCount) gPaletteIndex = 0;
   currentPalette = CRGBPalette16(*gPalettes[gPaletteIndex]);
 
-  stopper = millis();
-  looper = 0;
-  shouldUpdate = true;
+  dbg::println("Controller setup completed");
 }
 
 void loop() {
@@ -100,22 +98,27 @@ void loop() {
   // waveLengthByKnob();
 
   if (shouldUpdate) {
-    FillLEDsFromPaletteColors(looper, resolution, waveLengthScale);
-    FastLED.show();
+    setLeds();
     stopper = now;
     shouldUpdate = false;
   }
 }
 
+void setLeds() {
+  FillLEDsFromPaletteColors(looper, resolution, waveLengthScale);
+  FastLED.show();
+}
+
 void brightnessByKnob() {
   int newBrightness = calculateKnobValueForPin<int>(A0, 1, 255, 0, 1023);
-  if (brightness != newBrightness) {
+  if (abs(brightness - newBrightness) > 5) {
     dbg::print("[ANIMATION] Brightness changed from ");
     dbg::print(brightness);
     dbg::print(" to ");
     dbg::println(newBrightness);
     brightness = newBrightness;
     FastLED.setBrightness(brightness);
+    FastLED.show();
   }
 }
 
@@ -139,6 +142,7 @@ void waveLengthByKnob() {
     dbg::print(" to ");
     dbg::println(newWaveLengthScale);
     waveLengthScale = newWaveLengthScale;
+    setLeds();
   }
 }
 
@@ -156,8 +160,13 @@ void handleUltrasound() {
       map((int)mm, 30, 300, 255, 50), 50, 255);
 
     if (abs(newBright - brightness) > 5 && mm < 400) {  // ensure that measuers out of the "useful" range are not consumed
+      dbg::print("[ANIMATION] Brightness changed from ");
+      dbg::print(brightness);
+      dbg::print(" to ");
+      dbg::println(newBright);
       brightness = newBright;
       FastLED.setBrightness(brightness);
+      FastLED.show();
     }
   }
 }

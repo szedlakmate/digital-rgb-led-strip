@@ -13,13 +13,13 @@ void FillLEDsFromPaletteColors(long colorShift, int resolution, float waveLength
     long colorIndex = ((long)i * (long)256) / waveLengthScale / ((long)NUM_LEDS) + colorShift / (long)resolution;
 
     if (resolution == 1) {
-      leds[index] = ColorFromPalette(currentPalette, colorIndex + colorShift, BRIGHTNESS, currentBlending);
+      leds[index] = ColorFromPalette(currentPalette, colorIndex + colorShift, 255, currentBlending);  // brightness is set by `FastLED.setBrightness()` and not by "255"
     } else {
       // Apply smoothing
       leds[index] = blend(
-        ColorFromPalette(currentPalette, colorIndex, BRIGHTNESS, currentBlending),
-        ColorFromPalette(currentPalette, colorIndex + 1, BRIGHTNESS, currentBlending),
-        (float)(colorShift % resolution) * 255.0 / (float)resolution);
+        ColorFromPalette(currentPalette, colorIndex, 255, currentBlending),      // brightness is set by `FastLED.setBrightness()` and not by "255"
+        ColorFromPalette(currentPalette, colorIndex + 1, 255, currentBlending),  // brightness is set by `FastLED.setBrightness()` and not by "255"
+        (float)(colorShift % resolution) * 255.0 / (float)resolution);           // here "255" is the [blend factor](https://github.com/FastLED/FastLED/blob/9696074c3a267ed4237a3caa63a2fd079a48c19d/src/crgb.cpp#L54)
     }
   }
 }
