@@ -19,7 +19,7 @@ static float last_mm = 0;
 static bool fresh = false;
 
 void ultrasoundSetup() {
-  dbg::println("Setup ultrasound device");
+  dbg::println("Starting ultrasound device");
   pinMode(US_TRIG_PIN, OUTPUT);
   pinMode(US_ECHO_PIN, INPUT);
   digitalWrite(US_TRIG_PIN, LOW);
