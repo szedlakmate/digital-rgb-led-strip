@@ -4,6 +4,18 @@
 
 extern CRGBPalette256 currentPalette;
 
+
+const TProgmemRGBPalette16* const PREDEFINED_PALETTES[] = {
+  &OceanColors_p,
+  &CloudColors_p,
+  &LavaColors_p,
+  &HeatColors_p,
+  &ForestColors_p,
+  &PartyColors_p,
+  &RainbowColors_p,
+  &RainbowStripeColors_p
+};
+
 void SetupBlackAndWhiteStripedPalette() {
   fill_solid(currentPalette, 16, CRGB::Black);
   currentPalette[0] = CRGB::White;

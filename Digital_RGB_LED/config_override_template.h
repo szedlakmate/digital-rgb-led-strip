@@ -5,7 +5,7 @@
 #define CONFIG_OVERRIDE_H
 
 // Pins
-#define BRIGHTNESS 220  // max: 250
+#define BRIGHTNESS 220  // max: 255
 
 // Animation parameters
 #define BPM 3.0
