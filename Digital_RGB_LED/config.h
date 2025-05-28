@@ -10,15 +10,18 @@
 #include "palette.h"  // brings in PREDEFINED_PALETTES + typedefs
 
 /* ──────────── Hardware pins ──────────── */
-#define LED_PIN 31      // Arduino digital pin
-#define NUM_LEDS 300    // total LEDs on the strip
-// If defined, ultrasound measurement will be used
-// #define US_TRIG_PIN 7  
-// #define US_ECHO_PIN 8
+/* If pins are defined, the corresponding device gets loaded */
+#define LED_PIN 31  // Arduino digital pin
+// #define US_TRIG_PIN 7  // Ultrasound
+// #define US_ECHO_PIN 8  // Ultrasound
+// #define BRIGHTNESS_KNOB_PIN A0
+// #define BPM_KNOB_PIN A0
+// #define WAVE_LENGTH_SCALE_KNOB_PIN A0
 
 /* ────────── LED configuration ────────── */
 #define LED_TYPE WS2812B
 #define COLOR_ORDER GRB
+#define NUM_LEDS 300  // total LEDs on the strip
 
 /* ─────────── Animation defaults ─────── */
 #define BRIGHTNESS 220  // 0-255

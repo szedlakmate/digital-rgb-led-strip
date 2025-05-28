@@ -7,9 +7,13 @@
 #undef DEBUG
 #define DEBUG 1
 
-// Pins
-#define US_TRIG_PIN 7  
+/* ──────────── Hardware pins ──────────── */
+/* If pins are defined, the corresponding device gets loaded */
+#define US_TRIG_PIN 7
 #define US_ECHO_PIN 8
+#define BRIGHTNESS_KNOB_PIN A0
+#define BPM_KNOB_PIN A0
+#define WAVE_LENGTH_SCALE_KNOB_PIN A0
 
 // Animation parameters
 #define BRIGHTNESS 220  // max: 255

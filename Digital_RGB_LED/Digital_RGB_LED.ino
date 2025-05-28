@@ -49,6 +49,23 @@ void setup() {
   dbg::println("delayMillis:  ");
   dbg::println(delayMillis);
 
+#ifdef BRIGHTNESS_KNOB_PIN
+  dbg::print("Using brightness knob at pin  ");
+  dbg::println(BRIGHTNESS_KNOB_PIN);
+#endif
+
+  // Allow setting BPM by a knob
+#ifdef BPM_KNOB_PIN
+  dbg::print("Using BPM knob at pin  ");
+  dbg::println(BPM_KNOB_PIN);
+#endif
+
+  // Allow setting wave length scale by a knob
+#ifdef WAVE_LENGTH_SCALE_KNOB_PIN
+  dbg::print("Using wavelength scale knob at pin  ");
+  dbg::println(WAVE_LENGTH_SCALE_KNOB_PIN);
+#endif
+
   ultrasoundSetup();  // If pins are not set, it does not execute anything
 
   delay(500);
@@ -88,14 +105,20 @@ void loop() {
     }
   }
 
-  // Allow setting brightness by a knob connected to A0 pin
-  // brightnessByKnob();
+  // Allow setting brightness by a knob
+#ifdef BRIGHTNESS_KNOB_PIN
+  brightnessByKnob();
+#endif
 
-  // Allow setting BPM by a knob connected to A0 pin
-  // bpmByKnob();
+  // Allow setting BPM by a knob
+#ifdef BPM_KNOB_PIN
+  bpmByKnob();
+#endif
 
-  // Allow setting wave length scale by a knob connected to A0 pin
-  // waveLengthByKnob();
+  // Allow setting wave length scale by a knob
+#ifdef WAVE_LENGTH_SCALE_KNOB_PIN
+  waveLengthByKnob();
+#endif
 
   if (shouldUpdate) {
     setLeds();
