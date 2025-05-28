@@ -147,14 +147,14 @@ void handleUltrasound() {
 
   if (ultrasoundHasReading()) {  // non-blocking check
     float mm = ultrasoundRead_mm();
-    dbg::print("[US] ");
-    dbg::println(mm);
+    // dbg::print("[US] ");
+    // dbg::println(mm);
 
-    /* example: map 30-200 mm to brightness 50-250 */
+    /* example: map 30-800 mm to brightness 50-255 */
     int newBright = constrain(
-      map((int)mm, 30, 200, 250, 50), 50, 250);
+      map((int)mm, 30, 800, 255, 50), 50, 255);
 
-    if (newBright != brightness) {
+    if (abs(newBright - brightness) > 5 && mm < 1000) { // ensure that measuers out of the "useful" range are not consumed
       brightness = newBright;
       FastLED.setBrightness(brightness);
     }
