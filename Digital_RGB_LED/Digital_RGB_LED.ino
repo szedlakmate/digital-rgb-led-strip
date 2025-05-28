@@ -4,6 +4,7 @@
 #include "animation.h"
 #include "palette.h"
 #include "knob.h"
+#include "ultrasound.h"
 
 CRGB leds[NUM_LEDS];
 CRGBPalette256 currentPalette;
@@ -48,6 +49,8 @@ void setup() {
   dbg::println("delayMillis:  ");
   dbg::println(delayMillis);
 
+  ultrasoundSetup();
+
   delay(500);
 
   uint8_t sel = (PALETTE_INDEX < PREDEFINED_PALETTES_COUNT)
@@ -68,6 +71,8 @@ void setup() {
 }
 
 void loop() {
+  handleUltrasound();
+
   long now = millis();
   long expectedLooperDiff = (now - stopper) / delayMillis;
 
@@ -134,5 +139,24 @@ void waveLengthByKnob() {
     dbg::print(" to ");
     dbg::println(newWaveLengthScale);
     waveLengthScale = newWaveLengthScale;
+  }
+}
+
+void handleUltrasound() {
+  ultrasoundUpdate();
+
+  if (ultrasoundHasReading()) {  // non-blocking check
+    float mm = ultrasoundRead_mm();
+    dbg::print("[US] ");
+    dbg::println(mm);
+
+    /* example: map 30-200 mm to brightness 50-250 */
+    int newBright = constrain(
+      map((int)mm, 30, 200, 250, 50), 50, 250);
+
+    if (newBright != brightness) {
+      brightness = newBright;
+      FastLED.setBrightness(brightness);
+    }
   }
 }

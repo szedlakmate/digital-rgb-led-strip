@@ -15,6 +15,12 @@
 #define BRIGHTNESS 220  // 0-255
 #define LED_TYPE WS2812B
 #define COLOR_ORDER GRB
+#ifndef US_TRIG_PIN
+#  define US_TRIG_PIN 7
+#endif
+#ifndef US_ECHO_PIN
+#  define US_ECHO_PIN 8
+#endif
 
 /* ─────────── Animation defaults ─────── */
 #define BPM 5.0
