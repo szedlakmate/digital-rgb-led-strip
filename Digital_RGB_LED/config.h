@@ -26,7 +26,11 @@
 /* ─────────── Debug flag ─────────────── */
 #define DEBUG 0  // set to 1 in config_override.h for verbose logs
 
+
 /* ─────────── Globals (defined in .ino) ─ */
+#include "keypad.h"
+extern KeypadButtonConfig keypadButtons[];
+extern const size_t keypadButtonCount;
 extern CRGB leds[NUM_LEDS];
 extern CRGBPalette256 currentPalette;
 extern TBlendType currentBlending;
