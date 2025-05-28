@@ -9,14 +9,19 @@
 #include <FastLED.h>
 #include "palette.h"  // brings in PREDEFINED_PALETTES + typedefs
 
-/* ─────────── Hardware pins ─────────── */
+/* ──────────── Hardware pins ──────────── */
 #define LED_PIN 31      // Arduino digital pin
 #define NUM_LEDS 300    // total LEDs on the strip
-#define BRIGHTNESS 220  // 0-255
+// If defined, ultrasound measurement will be used
+// #define US_TRIG_PIN 7  
+// #define US_ECHO_PIN 8
+
+/* ────────── LED configuration ────────── */
 #define LED_TYPE WS2812B
 #define COLOR_ORDER GRB
 
 /* ─────────── Animation defaults ─────── */
+#define BRIGHTNESS 220  // 0-255
 #define BPM 5.0
 #define WAVE_LENGTH_SCALE 1.0
 #define RESOLUTION 1
