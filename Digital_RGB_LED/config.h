@@ -9,6 +9,9 @@
 #include <FastLED.h>
 #include "palette.h"  // brings in PREDEFINED_PALETTES + typedefs
 
+/* ─────────── Debug flag ─────────────── */
+#define DEBUG 0  // set to 1 in config_override.h for verbose logs
+
 /* ──────────── Hardware pins ──────────── */
 /* If pins are defined, the corresponding device gets loaded */
 #define LED_PIN 31  // Arduino digital pin
@@ -20,6 +23,7 @@
 
 /* ────────── LED configuration ────────── */
 #define LED_TYPE WS2812B
+#define LED_STRIP_COLOR_CORRECTION TypicalLEDStrip
 #define COLOR_ORDER GRB
 #define NUM_LEDS 300  // total LEDs on the strip
 
@@ -31,8 +35,22 @@
 #define REVERSED false
 #define PALETTE_INDEX 6
 
-/* ─────────── Debug flag ─────────────── */
-#define DEBUG 0  // set to 1 in config_override.h for verbose logs
+/* ────────── Animation limits ────────── */
+#define BRIGHTNESS_MIN 0
+#define BRIGHTNESS_MAX 255
+#define BRIGHTNESS_CHANGE_THRESHOLD 5
+#define BPM_MIN 0.01
+#define BPM_MAX 35.0
+#define BPM_CHANGE_THRESHOLD 0.6
+#define WAVE_LENGTH_SCALE_MIN 0.01
+#define WAVE_LENGTH_SCALE_MAX 8.0
+#define WAVE_LENGTH_SCALE_CHANGE_THRESHOLD 0.075
+
+/* ────────── Sensor config ────────── */
+#define US_MIN_DISTANCE_CM 30
+#define US_MAX_DISTANCE_CM 300
+#define KNOB_5V 1023
+#define KNOB_3_3V 675
 
 /* ─────────── Globals (defined in .ino) ─ */
 extern CRGB leds[NUM_LEDS];
