@@ -75,7 +75,7 @@ void setup() {
                   : 0;
   currentPalette = *(PREDEFINED_PALETTES[sel]);
 
-  FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalLEDStrip);
+  FastLED.addLeds<LED_TYPE, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(LED_STRIP_COLOR_CORRECTION);
   FastLED.setBrightness(brightness);
 
   // Set currentPalette from palette array and index
@@ -98,7 +98,8 @@ void loop() {
 
     if (missedFrames > 0) {
       dbg::print("[ANIMATION] Skipped frames: ");
-      dbg::println(missedFrames);
+      dbg::print(missedFrames);
+      dbg::print(", ");
       digitalWrite(LED_BUILTIN, HIGH);
     } else {
       digitalWrite(LED_BUILTIN, LOW);
@@ -133,8 +134,9 @@ void setLeds() {
 }
 
 void brightnessByKnob() {
-  int newBrightness = calculateKnobValueForPin<int>(A0, 1, 255, 0, 1023);
-  if (abs(brightness - newBrightness) > 5) {
+  int newBrightness = calculateKnobValueForPin<int>(A0, BRIGHTNESS_MIN, BRIGHTNESS_MAX, 0, KNOB_5V);
+  if (abs(brightness - newBrightness) > BRIGHTNESS_CHANGE_THRESHOLD) {
+    if (newBrightness <= BRIGHTNESS_CHANGE_THRESHOLD) { newBrightness = 0; }  // if brightness is below threshold, set it to 0
     dbg::print("[ANIMATION] Brightness changed from ");
     dbg::print(brightness);
     dbg::print(" to ");
@@ -146,8 +148,8 @@ void brightnessByKnob() {
 }
 
 void bpmByKnob() {
-  float newBPM = calculateKnobValueForPin<float>(A0, 0.01, 25.0, 0, 1023);
-  if (abs(bpm - newBPM) > 0.6) {  // add threshold to avoid flickering
+  float newBPM = calculateKnobValueForPin<float>(A0, BPM_MIN, BPM_MAX, 0, KNOB_5V);
+  if (abs(bpm - newBPM) > BPM_CHANGE_THRESHOLD) {  // add threshold to avoid flickering
     dbg::print("[ANIMATION] BPM changed from ");
     dbg::print(bpm);
     dbg::print(" to ");
@@ -158,8 +160,8 @@ void bpmByKnob() {
 }
 
 void waveLengthByKnob() {
-  float newWaveLengthScale = calculateKnobValueForPin<float>(A0, 0.01, 5.0, 0, 1023);
-  if (abs(waveLengthScale - newWaveLengthScale) > 0.075) {  // add threshold to avoid flickering
+  float newWaveLengthScale = calculateKnobValueForPin<float>(A0, WAVE_LENGTH_SCALE_MIN, WAVE_LENGTH_SCALE_MAX, 0, KNOB_5V);
+  if (abs(waveLengthScale - newWaveLengthScale) > WAVE_LENGTH_SCALE_CHANGE_THRESHOLD) {  // add threshold to avoid flickering
     dbg::print("[ANIMATION] Wave length scale changed from ");
     dbg::print(waveLengthScale);
     dbg::print(" to ");
@@ -180,9 +182,9 @@ void handleUltrasound() {
 
     /* example: map 30-300 mm to brightness 50-255 */
     int newBright = constrain(
-      map((int)mm, 30, 300, 255, 50), 50, 255);
+      map((int)mm, US_MIN_DISTANCE_CM, US_MAX_DISTANCE_CM, BRIGHTNESS_MAX, BRIGHTNESS_MIN), BRIGHTNESS_MIN, BRIGHTNESS_MAX);
 
-    if (abs(newBright - brightness) > 5 && mm < 400) {  // ensure that measuers out of the "useful" range are not consumed
+    if (abs(newBright - brightness) > BRIGHTNESS_CHANGE_THRESHOLD && mm < (US_MAX_DISTANCE_CM + 10)) {  // ensure that measuers out of the "useful" range are not consumed
       dbg::print("[ANIMATION] Brightness changed from ");
       dbg::print(brightness);
       dbg::print(" to ");

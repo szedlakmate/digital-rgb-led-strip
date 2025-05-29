@@ -4,11 +4,15 @@
 
 ## Description
 
-In this project I controls a digital / addressable LED strip to handle different animations
+In this project I controlls a digital / addressable LED strip to handle different animations
 
 ## Setup
 
-This project works with Arduino Mega and ESP8266. Wiring is pretty simple, and the first lines of the source code explain it. Wiring may vary between different versions of the code and different types of the used devices.
+This project works with Arduino Mega.
+
+### Dependencies
+
+- FastLED (avoid version 3.9.18)
 
 ## Features
 
