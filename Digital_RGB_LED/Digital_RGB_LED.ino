@@ -175,16 +175,17 @@ void handleUltrasound() {
   // If pins are not set, this function does nothing
   ultrasoundUpdate();
 
-  if (ultrasoundHasReading()) {  // non-blocking check
-    float mm = ultrasoundRead_mm();
+  if (ultrasoundHasReading()) {  // thread blocking check
+    float cm = ultrasoundRead_cm();
     // dbg::print("[US] ");
-    // dbg::println(mm);
+    // dbg::println(cm);
 
-    /* example: map 30-300 mm to brightness 50-255 */
+    /* example: map 3-30 cm to brightness 0-255 */
     int newBright = constrain(
-      map((int)mm, US_MIN_DISTANCE_CM, US_MAX_DISTANCE_CM, BRIGHTNESS_MAX, BRIGHTNESS_MIN), BRIGHTNESS_MIN, BRIGHTNESS_MAX);
+      map((int)cm, US_MIN_DISTANCE_CM, US_MAX_DISTANCE_CM, BRIGHTNESS_MAX, BRIGHTNESS_MIN),
+      BRIGHTNESS_MIN, BRIGHTNESS_MAX);
 
-    if (abs(newBright - brightness) > BRIGHTNESS_CHANGE_THRESHOLD && mm < (US_MAX_DISTANCE_CM + 10)) {  // ensure that measuers out of the "useful" range are not consumed
+    if (abs(newBright - brightness) > BRIGHTNESS_CHANGE_THRESHOLD && cm < (US_MAX_DISTANCE_CM + 10)) {  // ensure that measuers out of the "useful" range are not consumed
       dbg::print("[ANIMATION] Brightness changed from ");
       dbg::print(brightness);
       dbg::print(" to ");

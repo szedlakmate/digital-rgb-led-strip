@@ -47,8 +47,14 @@
 #define WAVE_LENGTH_SCALE_CHANGE_THRESHOLD 0.075
 
 /* ────────── Sensor config ────────── */
-#define US_MIN_DISTANCE_CM 30
-#define US_MAX_DISTANCE_CM 300
+// US_MAX_DISTANCE_CM Significantly influences peformance.
+// Example for US_MAX_DISTANCE_CM = 50 cm
+// MAX_CM = US_MAX_DISTANCE_CM + 5 = 55 cm; v.sound = 0.0343 cm/µs
+// blocking time: 3.2 ms (if no echo is received)
+// US_MAX_DISTANCE_CM = 40 => blocking time: 2.6 ms
+// US_MAX_DISTANCE_CM = 30 => blocking time: 2.0 ms
+#define US_MAX_DISTANCE_CM 40
+#define US_MIN_DISTANCE_CM 5
 #define KNOB_5V 1023
 #define KNOB_3_3V 675
 
