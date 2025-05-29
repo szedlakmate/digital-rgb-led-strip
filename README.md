@@ -1,41 +1,70 @@
-# Addressable LED strip animations
+# Addressable LED Strip Animations
 
 [![Build (master)](https://github.com/szedlakmate/digital-rgb-led-strip/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/szedlakmate/digital-rgb-led-strip/actions/workflows/build.yml)
 
-## Description
+## About This Project
 
-In this project I controlls a digital / addressable LED strip to handle different animations
+This is the personal love-project of **Máté Sedlák** ([@szedlakmate](https://github.com/szedlakmate)).
 
-## Setup
+The goal is to create a highly customizable, interactive LED strip controller for addressable LEDs, with a focus on modularity, real-time control, and fun experimentation. In the future, I plan to add support for controlling the LEDs with phones and other smart devices.
 
-This project works with Arduino Mega.
+## Overview
 
-### Dependencies
-
-- FastLED (avoid version 3.9.18)
+This project controls a digital (addressable) LED strip, such as WS2812B (NeoPixel), to display a variety of animated patterns. It is designed for Arduino Mega and supports real-time parameter control via potentiometer knobs and optional interaction with an ultrasonic distance sensor.
 
 ## Features
 
-### Rolling animation
+- Multiple color palettes and smooth animation effects
+- Real-time adjustment of brightness, animation speed (BPM), and pattern length via analog knobs
+- Optional ultrasound sensor for interactive effects (e.g., proximity-based brightness)
+- Modular configuration via `config.h` and local overrides in `config_override.h`
+- Debug logging (enable/disable in config)
 
-This animation consists a static pattern what is sliding infinitely on the LED strip. The following parameters can be configured:
+## Hardware Requirements
 
-#### special versions and attempts
+- Arduino Mega 2560 (or compatible)
+- WS2812B (NeoPixel) or compatible addressable LED strip
+- Potentiometers (for brightness, BPM, and pattern length control; optional)
+- HC-SR04 or compatible ultrasonic distance sensor (optional)
 
-- [Animation doubled](https://github.com/szedlakmate/digital-rgb-led-strip/tree/double_stripes) for symmetrical fun
-- [Knobs](https://github.com/szedlakmate/digital-rgb-led-strip/blob/potmeter-3) controlling animation parameters: brightness / speed / length of the pattern
-- [Bluetooth](https://github.com/szedlakmate/digital-rgb-led-strip/tree/bluetooth) based control, similarly to the knob based version
-- [HTTP request based control](https://github.com/szedlakmate/digital-rgb-led-strip/tree/esp-8266)
-- websocket based control
+## Setup
 
+1. **Install Dependencies**
+   - [FastLED](https://github.com/FastLED/FastLED) (avoid version 3.9.18, which is incompatible)
+   - [NewPing](https://bitbucket.org/teckel12/arduino-new-ping/wiki/Home)
 
-<img src="https://github.com/szedlakmate/digital-rgb-led-strip/assets/18262723/e38f261d-c5ab-4a61-8aa1-b6269f57a19f" width="310" height="410">
+2. **Configure Hardware**
+   - Edit `config.h` to set pin assignments and animation defaults.
+   - For local or per-device changes, copy `config_override_template.h` to `config_override.h` and override only the needed settings.
+   - See comments in `config.h` and module headers for wiring details.
 
-<img src="https://github.com/szedlakmate/digital-rgb-led-strip/assets/18262723/20f23b67-a6ae-4033-ac92-812d13a92f24" width="310" height="410">
+3. **Build and Upload**
+   - Open the project in the Arduino IDE or use Arduino CLI.
+   - Select the correct board (Arduino Mega 2560).
+   - Compile and upload the sketch.
 
+## Usage
 
-### Sunset lamp
+- Adjust the connected knobs to control brightness, animation speed (BPM), and pattern length in real time.
+- If an ultrasound sensor is connected, approach or move away to interactively change effects (e.g., brightness).
+- Enable debug output by setting `#define DEBUG 1` in your `config_override.h`.
 
-This version is a co-production with Rossana Ribeiro. In this project we built a a wall lamp with a slow smooth animation, imitating the lights and shades of sunset.
+## File Structure
 
-<img src="https://github.com/szedlakmate/digital-rgb-led-strip/assets/18262723/78d88a44-8ebf-4a6c-90e3-aeca3c72e1b1" width="420" height="340">
+- `Digital_RGB_LED.ino` — Main entry point
+- `animation.*` — Animation logic
+- `palette.*` — Color palette definitions
+- `knob.h` — Analog knob mapping utilities
+- `ultrasound.*` — Ultrasound sensor driver
+- `debug.h` — Debug logging utilities
+- `config.h` — Main configuration
+- `config_override_template.h` — Template for local overrides
+
+## Notes
+
+- Only define the pins/features you use in your configuration; unused features are automatically stubbed out.
+- Do not commit `config_override.h` to version control (see `.gitignore`).
+
+## License
+
+See [LICENSE](LICENSE) for details.
