@@ -1,3 +1,35 @@
+// Digital_RGB_LED.ino
+//
+// Main entry point for the Digital_RGB_LED project.
+//
+// This sketch controls a WS2812B (NeoPixel) LED strip with support for:
+//   - Multiple animation palettes
+//   - Real-time control via potentiometer knobs (brightness, BPM, wave length scale)
+//   - Optional ultrasound distance sensor for interactive effects
+//   - Debug logging (enable via config)
+//
+// Configuration:
+//   - All hardware and animation parameters are set in config.h or config_override.h
+//   - Only define the pins/features you use; others are stubbed out
+//
+// Wiring:
+//   - See config.h and module headers for wiring details for LEDs, knobs, and sensors
+//
+// Usage:
+//   - Upload to a compatible Arduino (e.g., Mega 2560)
+//   - Adjust knobs or interact with the ultrasound sensor to control effects
+//   - Use Serial output for debug info if enabled
+//
+// File structure:
+//   - animation.*: animation logic
+//   - palette.*: color palette definitions
+//   - knob.h: analog knob mapping
+//   - ultrasound.*: distance sensor
+//   - debug.h: debug logging utilities
+//   - config.h: main configuration
+//
+// See README.md for more details.
+
 #include "debug.h"
 #include "config.h"
 #include <FastLED.h>
