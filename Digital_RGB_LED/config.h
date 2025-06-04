@@ -80,6 +80,13 @@
 #define KNOB_5V 1023           // analogRead() max value for 5V reference
 #define KNOB_3_3V 675          // analogRead() max value for 3.3V reference
 
+/* ─────────── Local overrides ─────────── */
+#ifdef __has_include
+#if __has_include("config_override.h")
+#include "config_override.h"
+#endif
+#endif
+
 /* ─────────── Globals (defined in .ino) ─ */
 extern CRGB leds[NUM_LEDS];
 extern CRGBPalette256 currentPalette;
@@ -89,12 +96,5 @@ extern TBlendType currentBlending;
 extern const TProgmemRGBPalette16* const* gPalettes;  // pointer to table
 extern const uint8_t gPaletteCount;
 extern uint8_t gPaletteIndex;
-
-/* ─────────── Local overrides ─────────── */
-#ifdef __has_include
-#if __has_include("config_override.h")
-#include "config_override.h"
-#endif
-#endif
 
 #endif  // CONFIG_H
