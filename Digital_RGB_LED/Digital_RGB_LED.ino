@@ -37,10 +37,15 @@
 #include "palette.h"
 #include "knob.h"
 #include "ultrasound.h"
+#include "filters/InputPipeline.h"
 
 CRGB leds[NUM_LEDS];
 CRGBPalette256 currentPalette;
 TBlendType currentBlending;
+
+#ifdef WAVE_LENGTH_SCALE_KNOB_PIN
+InputPipeline waveLengthPipeline;
+#endif
 
 // Palette array and index definitions
 const TProgmemRGBPalette16* const* gPalettes = PREDEFINED_PALETTES;
@@ -96,6 +101,9 @@ void setup() {
 #ifdef WAVE_LENGTH_SCALE_KNOB_PIN
   dbg::print("Using wavelength scale knob at pin  ");
   dbg::println(WAVE_LENGTH_SCALE_KNOB_PIN);
+  waveLengthPipeline.useZeroGuard(5, 5);          // Prevent flaky zeros
+  waveLengthPipeline.useDeadband(2.0);            // Ignore changes < ±2
+  waveLengthPipeline.useAdaptiveSmoother(0.2, 6); // Smooth if fluctuation is small
 #endif
 
   ultrasoundSetup();  // If pins are not set, it does not execute anything
@@ -192,16 +200,23 @@ void bpmByKnob() {
 }
 
 void waveLengthByKnob() {
-  float newWaveLengthScale = calculateKnobValueForPin<float>(A0, WAVE_LENGTH_SCALE_MIN, WAVE_LENGTH_SCALE_MAX, 0, KNOB_5V);
-  if (abs(waveLengthScale - newWaveLengthScale) > WAVE_LENGTH_SCALE_CHANGE_THRESHOLD) {  // add threshold to avoid flickering
-    dbg::print("[ANIMATION] Wave length scale changed from ");
-    dbg::print(waveLengthScale);
-    dbg::print(" to ");
-    dbg::println(newWaveLengthScale);
-    waveLengthScale = newWaveLengthScale;
-    setLeds();
+  int raw = analogRead(WAVE_LENGTH_SCALE_KNOB_PIN);
+
+  if (waveLengthPipeline.update(raw)) {
+    float filtered = waveLengthPipeline.get();
+    float newWaveLengthScale = map(filtered, 0, KNOB_5V, WAVE_LENGTH_SCALE_MIN, WAVE_LENGTH_SCALE_MAX);
+    
+    if (abs(waveLengthScale - newWaveLengthScale) > WAVE_LENGTH_SCALE_CHANGE_THRESHOLD) {
+      dbg::print("[ANIMATION] Wave length scale changed from ");
+      dbg::print(waveLengthScale);
+      dbg::print(" to ");
+      dbg::println(newWaveLengthScale);
+      waveLengthScale = newWaveLengthScale;
+      setLeds();
+    }
   }
 }
+
 
 void handleUltrasound() {
   // If pins are not set, this function does nothing
