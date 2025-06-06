@@ -101,9 +101,9 @@ void setup() {
 #ifdef WAVE_LENGTH_SCALE_KNOB_PIN
   dbg::print("Using wavelength scale knob at pin  ");
   dbg::println(WAVE_LENGTH_SCALE_KNOB_PIN);
-  waveLengthPipeline.useZeroGuard(5, 5);          // Prevent flaky zeros
-  waveLengthPipeline.useDeadband(2.0);            // Ignore changes < ±2
-  waveLengthPipeline.useAdaptiveSmoother(0.2, 6); // Smooth if fluctuation is small
+  waveLengthPipeline.useZeroGuard(6, 10);            // History length = 6, threshold = 10
+  waveLengthPipeline.useDeadband(2.0);               // ±2 analog units = no update
+  waveLengthPipeline.useAdaptiveSmoother(0.2, 6.0);  // Smooth if change is within ±6
 #endif
 
   ultrasoundSetup();  // If pins are not set, it does not execute anything
@@ -204,8 +204,9 @@ void waveLengthByKnob() {
 
   if (waveLengthPipeline.update(raw)) {
     float filtered = waveLengthPipeline.get();
+
     float newWaveLengthScale = map(filtered, 0, KNOB_5V, WAVE_LENGTH_SCALE_MIN, WAVE_LENGTH_SCALE_MAX);
-    
+
     if (abs(waveLengthScale - newWaveLengthScale) > WAVE_LENGTH_SCALE_CHANGE_THRESHOLD) {
       dbg::print("[ANIMATION] Wave length scale changed from ");
       dbg::print(waveLengthScale);
