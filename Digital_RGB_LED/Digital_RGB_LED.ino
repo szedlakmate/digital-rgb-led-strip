@@ -166,7 +166,8 @@ void setLeds() {
 }
 
 void brightnessByKnob() {
-  int newBrightness = calculateKnobValueForPin<int>(A0, BRIGHTNESS_MIN, BRIGHTNESS_MAX, 0, KNOB_5V);
+#ifdef BRIGHTNESS_KNOB_PIN
+  int newBrightness = calculateKnobValueForPin<int>(BRIGHTNESS_KNOB_PIN, BRIGHTNESS_MIN, BRIGHTNESS_MAX, 0, KNOB_5V);
   if (abs(brightness - newBrightness) > BRIGHTNESS_CHANGE_THRESHOLD) {
     if (newBrightness <= BRIGHTNESS_CHANGE_THRESHOLD) { newBrightness = 0; }  // if brightness is below threshold, set it to 0
     dbg::print("[ANIMATION] Brightness changed from ");
@@ -177,10 +178,12 @@ void brightnessByKnob() {
     FastLED.setBrightness(brightness);
     FastLED.show();
   }
+#endif  // BRIGHTNESS_KNOB_PIN
 }
 
 void bpmByKnob() {
-  float newBPM = calculateKnobValueForPin<float>(A0, BPM_MIN, BPM_MAX, 0, KNOB_5V);
+#ifdef BPM_KNOB_PIN
+  float newBPM = calculateKnobValueForPin<float>(BPM_KNOB_PIN, BPM_MIN, BPM_MAX, 0, KNOB_5V);
   if (abs(bpm - newBPM) > BPM_CHANGE_THRESHOLD) {  // add threshold to avoid flickering
     dbg::print("[ANIMATION] BPM changed from ");
     dbg::print(bpm);
@@ -189,10 +192,12 @@ void bpmByKnob() {
     bpm = newBPM;
     delayMillis = calculateDelayMillis();
   }
+#endif  // BPM_KNOB_PIN
 }
 
 void waveLengthByKnob() {
-  float newWaveLengthScale = calculateKnobValueForPin<float>(A0, WAVE_LENGTH_SCALE_MIN, WAVE_LENGTH_SCALE_MAX, 0, KNOB_5V);
+#ifdef WAVE_LENGTH_SCALE_KNOB_PIN
+  float newWaveLengthScale = calculateKnobValueForPin<float>(WAVE_LENGTH_SCALE_KNOB_PIN, WAVE_LENGTH_SCALE_MIN, WAVE_LENGTH_SCALE_MAX, 0, KNOB_5V);
   if (abs(waveLengthScale - newWaveLengthScale) > WAVE_LENGTH_SCALE_CHANGE_THRESHOLD) {  // add threshold to avoid flickering
     dbg::print("[ANIMATION] Wave length scale changed from ");
     dbg::print(waveLengthScale);
@@ -200,7 +205,8 @@ void waveLengthByKnob() {
     dbg::println(newWaveLengthScale);
     waveLengthScale = newWaveLengthScale;
     setLeds();
-  }
+   }
+#endif  // WAVE_LENGTH_SCALE_KNOB_PIN
 }
 
 void handleUltrasound() {
