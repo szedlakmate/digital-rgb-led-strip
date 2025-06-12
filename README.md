@@ -1,10 +1,10 @@
 # Addressable LED Strip Animations
 
-[![Build (master)](https://github.com/szedlakmate/digital-rgb-led-strip/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/szedlakmate/digital-rgb-led-strip/actions/workflows/build.yml)
+[![Build (master)](https://github.com/sedlakmate/digital-rgb-led-strip/actions/workflows/build.yml/badge.svg?branch=master)](https://github.com/szedlakmate/digital-rgb-led-strip/actions/workflows/build.yml)
 
 ## About This Project
 
-This is the personal love-project of **Máté Sedlák** ([@szedlakmate](https://github.com/szedlakmate)).
+This is the personal love-project of **Máté Sedlák** ([@sedlakmate](https://github.com/sedlakmate)).
 
 The goal is to create a highly customizable, interactive LED strip controller for addressable LEDs, with a focus on modularity, real-time control, and fun experimentation. In the future, I plan to add support for controlling the LEDs with phones and other smart devices.
 
